@@ -8,7 +8,7 @@ from sklearn.cluster import KMeans
 import statistics
 import tensorflow as tf
 
-def pop_descent(optimizer, normalized_objective, new_individual, randomizer, observer = None, pop_size = 100, iterations = 20):
+def pop_descent(optimizer, normalized_objective, new_population, randomizer, observer = None, pop_size = 100, iterations = 20):
 
 	# optimizer: np.array(individuals) -> np.array(individual), np.array(floats(0-1))
 	# new_population: () -> np.array(individuals)
@@ -20,28 +20,20 @@ def pop_descent(optimizer, normalized_objective, new_individual, randomizer, obs
 	normalized_randomness_strength = 0.1
 
 	# creating population of individuals - floats (coordinates)
-	population, hist = [], []
-	for i in range(pop_size):
-		population.append(new_individual())
-	population = np.array(population)
+	population = np.array(new_population(pop_size))
+	hist = [] #list of history
 
 	#MAIN LOOP
 	for i in tqdm(range(0,iterations), desc = "Running Randomizer"):
 
-		# normalized fitnesses: optimal points close to 1
-		fitnesses = normalized_objective(population)
-
-		#graph
-		if(observer):
-			recorder(population, fitnesses, hist, i, iterations)
+		#calling OPTIMIZER, getting normalized fitness values
+		population, fitnesses = optimizer(population, normalized_objective)
+		fitnesses = 1 - fitnesses
 
 		#sorting fitnesses/population from worst to best
 		sorted_ind = np.argsort(fitnesses)
 		fitnesses = fitnesses[sorted_ind]
 		population = population[sorted_ind]
-
-		#calling OPTIMIZER
-		population, fitnesses = optimizer(population, normalized_objective)
 
 		#calling SIMPLE RANDOMIZER
 		#population[0:replaced_individuals] = randomizer(population[-replaced_individuals:], normalized_randomness_strength)
@@ -53,6 +45,10 @@ def pop_descent(optimizer, normalized_objective, new_individual, randomizer, obs
 		
 		population[0:replaced_individuals] = randomizer(chosen_population, randomizer_strength)
 
+		#graph
+		if(observer):
+			recorder(population, fitnesses, hist, i, iterations)
+
 	min_recorder(population, hist)
 	return population, fitnesses
 
@@ -60,7 +56,7 @@ def pop_descent(optimizer, normalized_objective, new_individual, randomizer, obs
 # Optimizer
 def optimizer(pop, objective_function = None):
 	#convert np.arrays to tensors
-	adam = tf.keras.optimizers.Adam(learning_rate = 1e-2)
+	adam = tf.keras.optimizers.Adam(learning_rate = 5e-2)
 
 	#computing gradient values
 	with tf.GradientTape() as tape:
@@ -97,9 +93,12 @@ def normalized_quartic(x):
 	return 1 - ((values-mins)/(maxs-mins))
 
 
-def new_individual():
-	coordinate = np.array((random.random()*20. - 10))
-	return coordinate
+def new_population(pop_size):
+	population = []
+	for i in range(pop_size):
+		coordinate = np.array((random.random()*20. - 10))
+		population.append(coordinate)
+	return population
 
 def simple_randomizer(population, normalized_amount):
 	#Adds random noise from Gaussian distribution to individual
@@ -119,7 +118,6 @@ def make_drawing_things(objective_function):
 
 		plt.plot(space, ySpace), plt.scatter(x, y)
 		plt.show(block=False), plt.pause(0.0005), plt.close()
-
 		return
 
 	def min_recorder(population, hist):
@@ -140,7 +138,7 @@ def make_drawing_things(objective_function):
 recorder, min_recorder = make_drawing_things(normalized_sin_np)
 
 if __name__ == "__main__":
-	optimized_population, optimized_fitnesses = pop_descent(optimizer, normalized_sin_np, new_individual, simple_randomizer, observer = recorder)
+	optimized_population, optimized_fitnesses = pop_descent(optimizer, normalized_sin_np, new_population, simple_randomizer, observer = recorder)
 
 # dataset = [cat, dog]
 
