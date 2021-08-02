@@ -10,14 +10,13 @@ import tensorflow as tf
 
 def pop_descent(optimizer, normalized_objective, new_individual, randomizer, observer = None, pop_size = 100, iterations = 20):
 
-	# optimizer: (individual -> scalar) -> (individual -> individual)
-	# normalized_objective: individual -> (float0-1)
-	# new_individual: () -> individual
-	# randomizer: (individual, float0-1) -> individual
-	# observer: () -> graph
+	# optimizer: np.array(individuals) -> np.array(individual), np.array(floats(0-1))
+	# new_population: () -> np.array(individuals)
+	# randomizer: np.array(individuals) -> np.array(individuals)
+	# observer: np.array(individuals) --> ()
 	# pop_size: int (number of individuals)
 
-	replaced_individuals = 20
+	replaced_individuals = 30
 	normalized_randomness_strength = 0.1
 
 	# creating population of individuals - floats (coordinates)
@@ -29,12 +28,12 @@ def pop_descent(optimizer, normalized_objective, new_individual, randomizer, obs
 	#MAIN LOOP
 	for i in tqdm(range(0,iterations), desc = "Running Randomizer"):
 
-		#normalized fitnesses: optimal points close to 1
+		# normalized fitnesses: optimal points close to 1
 		fitnesses = normalized_objective(population)
 
 		#graph
-		if(draw_population):
-			draw_population(population, fitnesses, hist)
+		if(observer):
+			recorder(population, fitnesses, hist, i, iterations)
 
 		#sorting fitnesses/population from worst to best
 		sorted_ind = np.argsort(fitnesses)
@@ -42,13 +41,13 @@ def pop_descent(optimizer, normalized_objective, new_individual, randomizer, obs
 		population = population[sorted_ind]
 
 		#calling OPTIMIZER
-		population = optimizer(population)
+		population, fitnesses = optimizer(population, normalized_objective)
 
 		#calling SIMPLE RANDOMIZER
 		#population[0:replaced_individuals] = randomizer(population[-replaced_individuals:], normalized_randomness_strength)
 
 		#calling WEIGHTED RANDOMIZER
-		chosen_indices = np.array((random.choices(np.arange(population.shape[0]), weights = 1 - fitnesses, k = replaced_individuals)))
+		chosen_indices = np.array((random.choices(np.arange(population.shape[0]), weights = fitnesses, k = replaced_individuals)))
 		chosen_population = population[chosen_indices]
 		randomizer_strength = 1 - (fitnesses[chosen_indices])
 		
@@ -59,19 +58,19 @@ def pop_descent(optimizer, normalized_objective, new_individual, randomizer, obs
 
 
 # Optimizer
-def optimizer(pop):
+def optimizer(pop, objective_function = None):
 	#convert np.arrays to tensors
 	adam = tf.keras.optimizers.Adam(learning_rate = 1e-2)
 
 	#computing gradient values
 	with tf.GradientTape() as tape:
 		tensors = tf.Variable(pop)
-		fitnesses = 1- normalized_quadratic(tensors)
+		fitnesses = 1 - normalized_sin(tensors)
 
 	#convert tensors back to np.arrays, multiply learning rate
 	adam.minimize(fitnesses, var_list = [tensors], tape = tape)
 
-	return tensors.numpy()
+	return tensors.numpy(), fitnesses.numpy()
 
 
 @tf.function
@@ -79,8 +78,8 @@ def normalized_quadratic(pop):
 	tensor_values = tf.math.pow(pop, 2)
 	return tf.math.subtract(tf.cast(1, tf.float64), tf.math.sigmoid(tensor_values))
 
-def normalized_quadratic_np(pop):
-	return normalized_quadratic(pop).numpy()
+# def normalized_quadratic_np(pop):
+# 	return normalized_quadratic(pop).numpy()
 
 
 def normalized_sin_np(x):
@@ -110,14 +109,17 @@ def simple_randomizer(population, normalized_amount):
 
 
 def make_drawing_things(objective_function):
-	def draw_population(population, fitnesses, hist):
+	def recorder(population, fitnesses, hist, iteration, number_of_iterations):
 		hist.append(min(objective_function(population)))
 		x = np.array(population)
 		y = objective_function(x)
+
 		space = np.linspace(min(x)-10, max(x)+10, len(population)*20)
 		ySpace = objective_function(space)
+
 		plt.plot(space, ySpace), plt.scatter(x, y)
 		plt.show(block=False), plt.pause(0.0005), plt.close()
+
 		return
 
 	def min_recorder(population, hist):
@@ -133,12 +135,12 @@ def make_drawing_things(objective_function):
 		print("" + "Final minimized value of the function: "), print(maximum_x_val, maximum_y_val), print("")
 		plt.plot(hist), plt.ylabel('function value'), plt.show(block=False), plt.pause(1), plt.close()
 		return
-	return draw_population, min_recorder
+	return recorder, min_recorder
 
-draw_population, min_recorder = make_drawing_things(normalized_sin_np)
+recorder, min_recorder = make_drawing_things(normalized_sin_np)
 
 if __name__ == "__main__":
-	optimized_population, optimized_fitnesses = pop_descent(optimizer, normalized_sin_np, new_individual, simple_randomizer, observer = draw_population)
+	optimized_population, optimized_fitnesses = pop_descent(optimizer, normalized_sin_np, new_individual, simple_randomizer, observer = recorder)
 
 # dataset = [cat, dog]
 
