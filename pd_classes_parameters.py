@@ -1,9 +1,11 @@
 # use Python 3.9
-# pip3.9 install -r requirements.txt
 # python3.9 -m venv env
 # source new3.9/bin/activate
+# pip3.9 install -r requirements.txt
+# python3.9 -m pd_classes_parameters
 
 import random
+import math
 import matplotlib.pyplot as plt
 import scipy
 from scipy.special import softmax
@@ -137,153 +139,51 @@ def make_drawing_things(objective_function, number_of_replaced_individuals):
 # FUNCTIONS FOR NN IMPLEMENTATION
 
 def new_NN_individual():
-# FM model
-	model = tf.keras.Sequential([
-    tf.keras.layers.Flatten(input_shape=(28, 28)),
-    tf.keras.layers.Dense(128, activation='relu'),
-    tf.keras.layers.Dense(1072, activation='relu'),
-    tf.keras.layers.Dense(128, activation='relu'),
-    tf.keras.layers.Dense(1072, activation='relu'),
-    tf.keras.layers.Dense(10)
-	])
 
+	# # Sin_With_Noise_Model
 	# model = tf.keras.Sequential([
-	# tf.keras.layers.Flatten(input_shape=(28, 28)),
- #    tf.keras.layers.Dense(4, activation='relu'),
- #    tf.keras.layers.Dense(10)
+ #    tf.keras.layers.Flatten(input_shape=(1,)),
+ #    tf.keras.layers.Dense(700, activation='relu'),
+ #    tf.keras.layers.Dense(700, activation='relu'),
+ #    tf.keras.layers.Dense(1)
 	# ])
 
-	# model = tf.keras.Sequential()
+	# # Sin_With_Noise_Model_Smaller
+	# model = tf.keras.Sequential([
+ #    tf.keras.layers.Flatten(input_shape=(1,)),
+ #    tf.keras.layers.Dense(10, activation='relu'),
+ #    tf.keras.layers.Dense(5, activation='relu'),
+ #    tf.keras.layers.Dense(1)
+	# ])
 
-	# model.add(layers.Dense(1, input_dim = 1))
-	# model.add(layers.Dense(4))
-	# model.add(layers.Dense(1))
+	# Sin_Model_Regularization_Layers
+	model = tf.keras.Sequential([
+	tf.keras.layers.Flatten(input_shape=(1,)),
+	tf.keras.layers.Dense(100, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
+	tf.keras.layers.Dense(100, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
+	tf.keras.layers.Dense(1)
+	])
+
 
 	model.compile(optimizer='adam',
               loss=tf.keras.losses.MeanSquaredError(reduction="auto", name="mean_squared_error"),
               metrics=['accuracy'])
 
-# SIN_With_Noise_Model
-
-	# model = tf.keras.Sequential()
-	# model.add(tf.keras.layers.Dense(units = 20, activation = 'relu', input_shape = [1]))
-	# model.add(tf.keras.layers.Dense(units = 20, activation = 'relu'))
-	# model.add(tf.keras.layers.Dense(units = 1, activation = 'linear'))
-
-	# optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3)
-
-	# model.compile(loss=tf.keras.losses.MeanSquaredError(), optimizer=optimizer)
-
-
-
-# bigger FM model (to try to force overfitting, test cross-validation selection)
-	# model = tf.keras.Sequential()
-
-	# model.add(layers.Conv2D(128, kernel_size=(3, 3), activation='relu', input_shape=FM_input_shape))
-	# model.add(layers.MaxPooling2D(pool_size=(2, 2)))
-	# model.add(layers.Dropout(0.2))
-
-	# model.add(layers.Flatten())
-
-	# model.add(layers.Dense(128, activation='relu'))
-	# model.add(layers.Dense(10, activation='softmax'))
-
-#different, bigger FM model
-	# model.add(layers.Conv2D(128, kernel_size=(3, 3), activation='relu', input_shape=FM_input_shape))
-	# model.add(layers.Activation('relu'))
-	# model.add(layers.Conv2D(filters=96, kernel_size=(3,3), strides=2))
-	# model.add(layers.Activation('relu'))
-
-	# model.add(layers.Conv2D(filters=192, kernel_size=(3,3)))
-	# model.add(layers.Activation('relu'))
-	# model.add(layers.Conv2D(filters=192, kernel_size=(3,3), strides=2))
-	# model.add(layers.Activation('relu'))
-
-	# model.add(layers.Flatten())
-	# model.add(layers.BatchNormalization())
-	# model.add(layers.Dense(128, activation='relu'))
-	# model.add(layers.Dense(256))
-	# model.add(layers.Dense(512))
-
-	# model.add(layers.Activation('relu'))
-
-	# model.add(layers.Dense(10, activation="softmax"))
-
-
-	# model.compile(optimizer='adam',
- #              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
- #              metrics=['accuracy'])
-
-
-# C10 model
-	# model = tf.keras.Sequential([
- #    tf.keras.layers.Flatten(FM_input_shape=(32, 32, 3)),
- #    tf.keras.layers.Dense(1072, activation='relu'),
- #    tf.keras.layers.Dense(10)
-	# ])
-
-	# different model
-
-
-	# model = models.Sequential()
-
-
-	# model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=FM_input_shape))
-	# model.add(layers.MaxPooling2D((2, 2)))
-	# model.add(layers.Conv2D(64, (3, 3), activation='relu'))
-	# model.add(layers.MaxPooling2D((2, 2)))
-	# model.add(layers.Conv2D(64, (3, 3), activation='relu'))
-
-	# model.add(layers.Flatten())
-	# model.add(layers.Dense(64, activation='relu'))
-	# model.add(layers.Dense(10))
-
-
-	# model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 3)))
-	# model.add(layers.MaxPooling2D((2, 2)))
-	# model.add(layers.Conv2D(64, (3, 3), activation='relu'))
-	# model.add(layers.MaxPooling2D((2, 2)))
-	# model.add(layers.Conv2D(64, (3, 3), activation='relu'))
-
-	# model.add(layers.Flatten())
-	# model.add(layers.Dense(64, activation='relu'))
-	# model.add(layers.Dense(10))
-
-
-# different C10 model
-	# model = models.Sequential()
-
-	# model.add(layers.Conv2D(input_shape=C10_train_images[0,:,:,:].shape, filters=96, kernel_size=(3,3)))
-	# model.add(layers.Activation('relu'))
-	# model.add(layers.Conv2D(filters=96, kernel_size=(3,3), strides=2))
-	# model.add(layers.Activation('relu'))
-	# model.add(layers.Dropout(0.2))
-	# model.add(layers.Conv2D(filters=192, kernel_size=(3,3)))
-	# model.add(layers.Activation('relu'))
-	# model.add(layers.Conv2D(filters=192, kernel_size=(3,3), strides=2))
-	# model.add(layers.Activation('relu'))
-	# model.add(layers.Dropout(0.5))
-	# model.add(layers.Flatten())
-	# model.add(layers.BatchNormalization())
-	# model.add(layers.Dense(256))
-	# model.add(layers.Activation('relu'))
-	# model.add(layers.Dense(10, activation="softmax"))
-
-	# model.compile(optimizer='adam',
- #              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
- #              metrics=['accuracy'])
-
-
 	optimizer = tf.keras.optimizers.Adam()
-	NN_object = NN_Individual(model, optimizer)
+	LR_constant = 10**(np.random.normal(-3, 2))
+	reg_constant = 10**(np.random.normal(-3, 2))
+
+	reg_constant = 0
+	print("reg_constant"), print(reg_constant)
+	NN_object = NN_Individual(model, optimizer, LR_constant, reg_constant)
 
 	return NN_object
 
 
 def NN_optimizer_manual_loss(NN_object):
 
-	batch_size = 64
-	epochs = 100
+	batch_size = 50
+	epochs = 25
 	normalized_training_loss, normalized_validation_loss = [], []
 
 	#indices = np.arange(FM_train_images.shape[0])
@@ -303,15 +203,15 @@ def NN_optimizer_manual_loss(NN_object):
 
 	optimizer = NN_object.opt_obj # for NN usage (check if I can access it through nn directly --> .nn)
 	# optimizer = tf.keras.optimizers.Adam() # for polynomial regression
-	# simple_lossfn = tf.keras.losses.MeanSquaredError()
+	simple_lossfn = tf.keras.losses.MeanSquaredError()
 
-	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+	# lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 	# print(optimizer.learning_rate)
 
 	for e in range(epochs):
 
-		sIndices = np.random.choice(50, 50, replace=False)
-		random_batch_sin_train_x, random_batch_sin_train_labels = sin_x_values[sIndices], noisyY[sIndices]
+		sIndices = np.random.choice(100, 100, replace=False)
+		random_batch_sin_train_x, random_batch_sin_train_labels = sin_x_train[sIndices], sin_y_train[sIndices]
 		
 		# NN_object.nn.fit(random_batch_sin_train_x, random_batch_sin_train_labels, epochs=1, verbose=1, batch_size = batch_size)
 
@@ -319,27 +219,36 @@ def NN_optimizer_manual_loss(NN_object):
 		with tf.GradientTape() as tape:
 
 		# 	# make a prediction using the model and then calculate the loss
-			model_loss = lossfn(random_batch_FM_train_labels, NN_object.nn(random_batch_FM_train_images))
+			# model_loss = lossfn(random_batch_FM_train_labels, NN_object.nn(random_batch_FM_train_images))
 
 		# 	# validation_loss = lossfn(random_batch_FM_validation_labels, NN_object.nn(random_batch_FM_validation_images))
-		# 	#NN_object.nn.fit(sin_x_values, noisyY, epochs=5, verbose=1)
-
+		# 	#NN_object.nn.fit(sin_x_train, noisyY, epochs=5, verbose=1)
 
 			# model_loss = simple_lossfn(py, var_polynomial(px, coefficients)) # for polynomial regression
 
+			model_loss = simple_lossfn(random_batch_sin_train_labels, NN_object.nn(random_batch_sin_train_x)) # noisy sin wave
+			regularization_loss = NN_object.nn.losses
+			validation_loss = simple_lossfn(sin_y_val, NN_object.nn(sin_x_val))
+			reg_loss = (regularization_loss[0] + regularization_loss[1])
+			mreg_loss = reg_loss * NN_object.reg_constant
 
-			# model_loss = simple_lossfn(random_batch_sin_train_labels, NN_object.nn(random_batch_sin_train_x)) # noisy sin wave
+			print("mreg los: %s" % mreg_loss), print("")
+
+			total_training_loss = tf.math.multiply(NN_object.LR_constant, tf.add(model_loss, mreg_loss))
+
+			print("%s --> total training loss (GD loss + reg losses)" % total_training_loss)
 
 		# 	#model_loss = lossfn(random_batch_C10_train_labels, NN_object.nn(random_batch_C10_train_images))
 		# 	#validation_loss = lossfn(C10_validation_labels, NN_object.nn(C10_validation_images))
 
-		print(""), print("unnormalized: "), print(model_loss), print("")
+		# print(" %s --> unnormalized training loss: %s" % model_loss), print("")
 
 		# grads = tape.gradient(model_loss, coefficients) # for poly regression
 		# optimizer.apply_gradients(zip(grads, coefficients)) # for polynomial regression
 
 		# # calculate the gradients using our tape and then update the model weights
-		grads = tape.gradient(model_loss, NN_object.nn.trainable_variables)
+		# grads = tape.gradient(model_loss, NN_object.nn.trainable_variables)
+		grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables)
 		optimizer.apply_gradients(zip(grads, NN_object.nn.trainable_variables))
 
 		# print(grads)
@@ -348,54 +257,75 @@ def NN_optimizer_manual_loss(NN_object):
 	normalized_training_loss.append(1/(1+(model_loss)))
 	normalized_training_loss = np.array(normalized_training_loss)
 
-	# normalized_validation_loss.append(1/(1+(validation_loss)))
-	# normalized_validation_loss = np.array(normalized_validation_loss)
-	normalized_training_loss, normalized_validation_loss = normalized_training_loss, 0
+	normalized_validation_loss.append(1/(1+(validation_loss)))
+	normalized_validation_loss = np.array(normalized_validation_loss)
 
-	print(""), print("training"), print(normalized_training_loss)
-	#print("validation"), print(validation_loss)
+	normalized_training_loss, normalized_validation_loss = normalized_training_loss, normalized_validation_loss
+
+	# print(""), print("normalized training loss: %s" % normalized_training_loss)
+	# print("normalized validation loss: %s" % normalized_validation_loss)
 
 	#print(model_loss)
 
 	return normalized_training_loss, normalized_validation_loss
 
 def NN_randomizer_manual_loss(NN_object, normalized_amount):
-	print("")
+	print(""), print("RANDOMIZING")
 
+	# randomizing NN weights
 	model_clone = tf.keras.models.clone_model(NN_object.nn)
 	model_clone.set_weights(np.array(NN_object.nn.get_weights()))
 
-	mu, sigma = 0, (1e-4)
+	mu, sigma = 0, 1e-4
 	gNoise = (np.random.normal(mu, sigma))*(normalized_amount)
 
 	weights = np.array((NN_object.nn.get_weights()))
 	randomized_weights = weights + gNoise
 	model_clone.set_weights(randomized_weights)
 
+	# randomizing regularization rate
+	mu, sigma = 0, 0.3
+	randomization = 2**(np.random.normal(mu, sigma) * normalized_amount)
+	print("reg randomization: %s" % randomization)
+	new_reg_constant = (NN_object.reg_constant) * randomization
+	print("NN_object.reg_constant: %s" % NN_object.reg_constant)
+	# print(normalized_amount)
+	print("new_reg_constant: %s" % new_reg_constant)
+
 	# randomizing learning_rates
-	CA_LR = NN_object.opt_obj.learning_rate
+	mu, sigma = 0, 0.3
+	randomization = 2**(np.random.normal(mu, sigma)*normalized_amount)
+	print("LR randomization: %s" % randomization)
+	new_LR_constant = (NN_object.LR_constant) * randomization
+	print("NN_object.LR_constant: %s" % NN_object.LR_constant)
+	# print(normalized_amount)
+	print("new_reg_constant: %s" % new_LR_constant)
 
-	# creating new Adam object with randomized LR
-	mu, sigma = 1, normalized_amount
-	new_learning_rate = CA_LR * np.exp(np.random.normal(mu, sigma))
-	randomized_optimizer = tf.keras.optimizers.Adam()
-	randomized_optimizer.learning_rate.assign(new_learning_rate)
 
-	# creating a new NN_Individual with new model (ranodmized weights) and new Adam (new LR)
-	#new_NN_Individual = NN_Individual(model_clone, randomized_optimizer) # with randomized LR
-	new_NN_Individual = NN_Individual(model_clone, NN_object.opt_obj) # without randoimzed LR
 
-	# print(""), print("testing stuff")
-	# print(new_NN_Individual.opt_obj.learning_rate)
-	# print(NN_object.opt_obj.learning_rate)
-	# print(""), print("")
+
+
+
+	# CA_LR = NN_object.opt_obj.learning_rate
+
+	# # creating new Adam object with randomized LR
+	# mu, sigma = 1, normalized_amount
+	# new_learning_rate = CA_LR * np.exp(np.random.normal(mu, sigma))
+	# print(new_learning_rate)
+	# randomized_optimizer = tf.keras.optimizers.Adam()
+	# randomized_optimizer.learning_rate.assign(new_learning_rate)
+
+	# creating a new NN_Individual with new model (randomized weights) and new Adam (new LR)
+	# new_NN_Individual = NN_Individual(model_clone, randomized_optimizer) # with randomized LR
+	
+	new_NN_Individual = NN_Individual(model_clone, NN_object.opt_obj, new_LR_constant, new_reg_constant) # without randoimzed LR
 
 	return new_NN_Individual
 
 
-def evaluator(NN_object, hist):
+def evaluator(NN_object, total_hist, batch_hist):
 	regression_NN_compiler(NN_object.nn) # only if using manual loss optimizer/randomizer
-	test_loss, test_acc = [], []
+	total_test_loss, batch_test_loss, test_acc = [], [], []
 	batch_size = 64
 	# indices = np.random.random_integers(9999, size = (batch_size*25, ))
 	indices = np.arange(FM_test_images.shape[0])
@@ -408,80 +338,69 @@ def evaluator(NN_object, hist):
 	random_batch_C10_test_labels = C10_test_labels[indices]
 
 
-	# # plot regression model to fit points
-	# plotting_poly_x = np.linspace(0, 5, 200)
+	# ntest_loss = NN_object.nn.evaluate(sin_x_train, (np.sin(sin_x_train)), batch_size = 64, verbose=1) # testing sin+noise curve-fitting
+	
+	print(""), print("evaluating on sin wave (no noise)")
+	all_test_loss = NN_object.nn.evaluate(sin_x_test, np.sin(sin_x_test), batch_size = 64, verbose=1) # comparing to sin wave (no noise)
 
-	# evaluate_py = var_polynomial(plotting_poly_x, coefficients)
-	# evaluate_py = evaluate_py.numpy()
-	# evaluate_py = np.reshape(evaluate_py, [200, ])
-	# print(evaluate_py)
-
-	# plt.scatter(px, py)
-	# plt.plot(plotting_poly_x, evaluate_py)
-	# plt.show(block=False), plt.pause(0), plt.close()
-
-	# print(coefficients)
-
-
-	# evaluate_py = polynomial(plotting_poly_x)
-	# evaluate_py = evaluate_py.numpy()
-	# evaluate_py = np.reshape(evaluate_py, [200, ])
-	# print(evaluate_py)
-
-	# plt.scatter(px, py)
-	# plt.plot(plotting_poly_x, evaluate_py)
-	# plt.show(block=False), plt.pause(0), plt.close()
-
-
-	# ntest_loss = NN_object.nn.evaluate(sin_x_values, (np.sin(sin_x_values)), batch_size = 64, verbose=1) # testing sin+noise curve-fitting
+	print(""), print("evaluating on test data (with noise)")
+	partial_test_loss = NN_object.nn.evaluate(sin_x_test, sin_y_test, batch_size = 64, verbose=1) # comparing to sin test data (with noise)
 	#ntest_loss = 0
-	# NN_object.nn(test_sin_x_values[0])
+	# NN_object.nn(test_sin_x_train[0])
 
 	ntest_acc = 0
-	ntest_loss = NN_object.nn.evaluate(FM_train_images, FM_train_labels, batch_size = batch_size, verbose=1)
+	# ntest_loss = NN_object.nn.evaluate(FM_train_images, FM_train_labels, batch_size = batch_size, verbose=1)
 	#ntest_loss, ntest_acc = model.evaluate(random_batch_C10_test_images, random_batch_C10_test_labels, batch_size = batch_size, verbose=1)
 	
-	test_loss.append(ntest_loss)
+	total_test_loss.append(all_test_loss)
+	batch_test_loss.append(partial_test_loss)
 	test_acc.append(ntest_acc)
 
-	avg_loss = np.mean(test_loss)
+	avg_total_loss = np.mean(total_test_loss)
+	avg_batch_loss = np.mean(batch_test_loss)
 	avg_acc = np.mean(test_acc)
-	hist.append(avg_loss)
-	print(""), print("avg_loss: %s" % avg_loss), print("avg_acc: %s" % avg_acc), print(""), print("")
 
-	return avg_loss, avg_acc
+	total_hist.append(avg_total_loss)
+	print(""), print("avg_total_loss: %s" % avg_total_loss), print("avg_batch_loss: %s" % avg_batch_loss), print(""), print("")
+
+	return avg_total_loss, avg_batch_loss, avg_acc
 
 # External Evaluator
-def Parameter_class_evaluator(population, hist):
-	all_loss, all_acc = [], []
+def Parameter_class_evaluator(population, total_hist, batch_hist):
+	total_test_loss, batch_test_loss, all_acc = [], [], []
 
 	# # for sin wave
-	# models = []
-	# for h in range(len(population)):
-	# 	m = population[h].nn
-	# 	models.append(m)
-	# 	plt.scatter(sin_x_values, noisyY)
-	# 	plt.plot(sin_x_values, np.sin(sin_x_values))
-	# 	plt.plot(sin_x_values, models[h](sin_x_values)) # plot from the 
-	# 	plt.show(block=False), plt.pause(0), plt.close()
-	# # end of sin wave code
+	models = []
+	for h in range(len(population)):
+	# for h in range(1):
+		m = population[h].nn
+		plt.scatter(sin_x_train, sin_y_train, color = 'k')
+		plt.scatter(sin_x_val, sin_y_val, color = 'b')
+		plt.scatter(sin_x_test, sin_y_test, color = 'r')
+		plt.plot(sin_x_data, np.sin(sin_x_data)) # sin function
+		plt.plot(sin_x_data, m(sin_x_data)) # model predictions
+		plt.title("WITHout CV; Figure %s" % (h+1))
+		plt.xlabel("black = train;    blue = val;    red = test")
+		plt.show(block=False), plt.pause(0), plt.close()
+	# end of sin wave code
 
-
-	# plt.scatter(sin_x_values, noisyY)
-	# plt.plot(sin_x_values, np.sin(sin_x_values))
-	# plt.plot(sin_x_values, models[h](sin_x_values)) # plot from the 
+	# plt.scatter(sin_x_train, noisyY)
+	# plt.plot(sin_x_train, np.sin(sin_x_train))
+	# plt.plot(sin_x_train, population[0].nn(sin_x_train)) # plot from the 
 	# plt.show(block=False), plt.pause(0), plt.close() # for noisy sin
 
 	for i in range(len(population)):
-		individual_loss, individual_acc = evaluator(population[i], hist)
+		individual_total_loss, individual_batch_loss, individual_acc = evaluator(population[i], total_hist, batch_hist)
 
-		all_loss.append(individual_loss)
+		total_test_loss.append(individual_total_loss)
+		batch_test_loss.append(individual_batch_loss)
 		all_acc.append(individual_acc)
 
-	avg_loss = np.mean(all_loss)
+	avg_total_loss = np.mean(total_test_loss)
+	avg_batch_loss = np.mean(batch_test_loss)
 	avg_acc = np.mean(all_acc)
 
-	return avg_loss, avg_acc
+	return avg_total_loss, avg_batch_loss, avg_acc
 
 def classification_NN_compiler(model):
 	model.compile(optimizer='adam',
@@ -518,6 +437,8 @@ class NN_Individual:
 
 	nn: models.Sequential()
 	opt_obj: Adam()
+	LR_constant: np.cfloat
+	reg_constant: np.cfloat
 
 
 def individual_to_params(
@@ -587,8 +508,8 @@ p = n # degree of polynomial
 
 px = np.arange(1, 6) # X values
 py = np.random.randint(0, 10, n)
-print(px)
-print(py)
+# print(px)
+# print(py)
 
 # plt.scatter(px, py)
 # plt.pause(5), plt.close()
@@ -604,7 +525,7 @@ for z in range(p):
 # coefficients = np.array([theta_1, theta_2, theta_3, theta_4, theta_5, theta_6])
 # coefficients = [theta_1, theta_2, theta_3, theta_4, theta_5, theta_6]
 # coefficients = np.array(coefficients)
-print(coefficients)
+# print(coefficients)
 
 
 def var_polynomial(x, coefficients):
@@ -616,57 +537,71 @@ def var_polynomial(x, coefficients):
 
 
 
-# # SIN wave with noise dataset
+# # # SIN wave with noise dataset (CV set is just regular sin wave, not split from same dataset)
+# num = 50
 
-num = 50
+# # training data
+# sin_x_train = np.linspace(-3.14, 3.14, num=num).reshape([num, 1])
+# y = np.sin(sin_x_train)
 
-#sin_x_values = np.array(np.arange(-(np.pi*100), (np.pi*100), (np.pi)/4))
-sin_x_values = np.linspace(-3.14, 3.14, num=num)
-sin_x_values = np.reshape(sin_x_values, [num, 1])
+# mu, sigma = 0, 1
+# noise = np.random.normal(mu, sigma, size=[num, 1])
+# noisyY = noise + y
+# noisyY = np.array(noisyY)
 
-y = np.sin(sin_x_values)
-y = np.reshape(y, [num, ])
+# # val Data
+# sin_x_val = sin_x_train
+# sin_y_val = y
 
-# print(sin_x_values)
-# print("y"), print(y), print(y.shape)
+# # Testing Data
+# sin_x_test = np.linspace(-3, 3, num=num).reshape([num, 1])
+# sin_y_test = np.sin(sin_x_test)
+
+# # # graph noise + sin wave
+# # plt.scatter(sin_x_train, noisyY)
+# # plt.plot(sin_x_train, np.sin(sin_x_train))
+# # plt.show(block=False), plt.pause(0), plt.close()
 
 
+# # SIN wave with noise dataset (CV set is just regular sin wave, not split from same dataset)
+num = 300
+
+# full data
+sin_x_data = np.linspace(-3.14, 3.14, num=num).reshape([num, 1])
+sin_y_data = np.sin(sin_x_data)
+
+# perturbing y data points
 mu, sigma = 0, 1
-noise = np.random.normal(mu, sigma, num)
-# print(""), print("noise: "), print(noise), print(noise.shape)
-
-noise = np.reshape(noise, [num, ])
-noisyY = np.add(noise, y)
+noise = np.random.normal(mu, sigma, size=[num, 1])
+noisyY = noise + sin_y_data
 noisyY = np.array(noisyY)
 
-# nflat = noisyY.flatten()
+indices = (np.arange(num))
+np.random.shuffle(indices)
+
+div = (num)//3
+
+training_indices = indices[0:div]
+val_indices = indices[div:(div*2)]
+test_indices = indices[(div*2):(div*3)]
+
+# training data
+sin_x_train = sin_x_data[training_indices]
+sin_y_train = noisyY[training_indices]
 
 # val Data
-val_sin_x_values = sin_x_values
-val_Y = np.sin(val_sin_x_values)
+sin_x_val = sin_x_data[val_indices]
+sin_y_val = noisyY[val_indices]
 
 # Testing Data
-test_sin_x_values = sin_x_values
-test_Y = np.sin(test_sin_x_values)
+sin_x_test = sin_x_data[test_indices]
+sin_y_test = noisyY[test_indices]
+sin_test_data = (sin_x_train, sin_y_train)
 
-
-#noisyY = np.reshape(noisyY, [1000, 1])
-
-# graphing noisy sin
-allX = sin_x_values
-allY = noisyY
-space = sin_x_values
-
-
-print(sin_x_values.shape)
-print(noise.shape)
-print(noisyY.shape)
-
-# plt.scatter(sin_x_values, noisyY)
-# plt.plot(sin_x_values, np.sin(sin_x_values))
+# # graph noise + sin wave
+# plt.scatter(sin_x_train, noisyY)
+# plt.plot(sin_x_train, np.sin(sin_x_train))
 # plt.show(block=False), plt.pause(0), plt.close()
-
-
 
 
 # Fashion-MNIST dataset
@@ -705,9 +640,9 @@ C10_train_images, C10_test_images = C10_train_images / 255.0, C10_test_images / 
 
 
 # SOME PARAMETERS FOR QUICK ACCESS
-iterations = 50
-pop_size = 1
-number_of_replaced_individuals = 2
+iterations = 1000
+pop_size = 25
+number_of_replaced_individuals = 10
 normalized_objective = normalized_quartic
 
 
@@ -724,39 +659,38 @@ if __name__ == "__main__":
 	#optimized_population, optimized_fitnesses = pop_descent(optimizer = optimizer, randomizer = simple_randomizer, new_population = new_population, pop_size = pop_size, number_of_replaced_individuals = number_of_replaced_individuals, iterations = iterations, final_observer = min_recorder, recorder = graph_recorder, normalized_objective = normalized_complex_sin, normalized_randomness_strength = None)
 	#optimized_population, optimized_fitnesses = pd_parameters(Parameters_object, number_of_replaced_individuals = number_of_replaced_individuals, iterations = iterations, final_observer = None, recorder = None, normalized_objective = normalized_Ackley, normalized_randomness_strength = None)
 
-	loss_data, acc_data, total_test_loss, total_test_acc = [], [], [], []
+	loss_data, acc_data, total_test_loss, batch_test_loss, total_test_acc = [], [], [], [], []
 
 
 	for i in range(1):
 
 		print(""), print("MAJOR ITERATION %s: " % (i+1)), print("")
-		#print("NO RANDOMIZER")
-		print("WITHout CV")
 
 		#optimized_population, lfitnesses, vfitnesses = pop_descent(NN_optimizer, NN_randomizer, new_NN_population, pop_size = pop_size, number_of_replaced_individuals = number_of_replaced_individuals, iterations = iterations, final_observer = None, recorder = evaluator, normalized_objective = None, normalized_randomness_strength = None)
 		optimized_population, lfitnesses, vfitnesses = pop_descent_classes(Parameters_object, number_of_replaced_individuals = number_of_replaced_individuals, iterations = iterations)
 
-		# evaluate from outside
-		hist = []
-		avg_test_loss, avg_test_acc = Parameter_class_evaluator(optimized_population, hist)
-
-
 		lmean = statistics.mean(lfitnesses)
 		loss_data.append(lmean)
 
-		total_test_loss.append(avg_test_loss)
+		# evaluate from outside
+		total_hist, batch_hist = [], []
+		avg_total_loss, avg_batch_loss, avg_test_acc = Parameter_class_evaluator(optimized_population, total_hist, batch_hist)
+
+		total_test_loss.append(avg_total_loss)
+		batch_test_loss.append(avg_batch_loss)
 		total_test_acc.append(avg_test_acc)
 
 		#amean = statistics.mean(vfitnesses)
 		#acc_data.append(amean)
 	total_test_loss = np.array(total_test_loss)
 	total_test_loss = 1/(1+(total_test_loss))
+	batch_test_loss = np.array(batch_test_loss)
+	batch_test_loss = 1/(1+(batch_test_loss))
 
-
-	print(""), print("avg final normalized loss of population at end of iterations on training")
+	print(""), print("WITHout CV"), print(""), print(""), print("avg final normalized loss of population at end of iterations on training")
 	print(loss_data)
 	# print(acc_data)
 
-	print(""), print("normalized_test_losses, all_test_acc")
-	print(total_test_loss), print(total_test_acc), print("")
+	print(""), print("normalized_batch_losses (sin with no noise), normalized_test_losses (sin test data with noise)")
+	print(total_test_loss), print(batch_test_loss)
 

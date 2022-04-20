@@ -30,28 +30,29 @@ def pop_descent_classes(Parameters, number_of_replaced_individuals, iterations):
 		#calling OPTIMIZER
 		lFitnesses, vFitnesses = Parameters.optimizer(Parameters.population)
 
-		#sorting losses
+		#sorting losses (training)
 		sorted_ind = np.argsort(lFitnesses)
 		lFitnesses = lFitnesses[sorted_ind] #worst to best
 		Parameters.population = Parameters.population[sorted_ind] #worst to best
 
-		# #choosing individuals from weighted distribution (using accuracies)
-		# chosen_indices = np.array((random.choices(np.arange(Parameters.population.shape[0]), weights = lFitnesses, k = number_of_replaced_individuals)))
-		# chosen_population = Parameters.population[chosen_indices]
-		# randomizer_strength = 1 - (lFitnesses[chosen_indices])
+		#choosing individuals from weighted distribution (training)
+		chosen_indices = np.array((random.choices(np.arange(Parameters.population.shape[0]), weights = lFitnesses, k = number_of_replaced_individuals)))
+		chosen_population = Parameters.population[chosen_indices]
+		randomizer_strength = 1 - (lFitnesses[chosen_indices])
 
-
+		# # #sorting losses (validation)
 		# sorted_ind = np.argsort(vFitnesses)
 		# vFitnesses = vFitnesses[sorted_ind] #worst to best
 		# Parameters.population = Parameters.population[sorted_ind] #worst to best
 
+		# #choosing individuals from weighted distribution (validation)
 		# chosen_indices = np.array((random.choices(np.arange(Parameters.population.shape[0]), weights = vFitnesses, k = number_of_replaced_individuals)))
 		# chosen_population = Parameters.population[chosen_indices]
 		# randomizer_strength = 1 - (vFitnesses[chosen_indices])
 
 
 		#calling WEIGHTED RANDOMIZER
-		#Parameters.population[0:number_of_replaced_individuals] = Parameters.randomizer(chosen_population, randomizer_strength)
+		Parameters.population[0:number_of_replaced_individuals] = Parameters.randomizer(chosen_population, randomizer_strength)
 
 	return Parameters.population, lFitnesses, vFitnesses
 
