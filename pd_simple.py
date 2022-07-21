@@ -8,7 +8,7 @@ from sklearn.cluster import KMeans
 import statistics
 import tensorflow as tf
 
-def pop_descent(optimizer, normalized_objective, new_population, randomizer, observer = None, pop_size = 100, iterations = 20):
+def pop_descent(optimizer, normalized_objective, new_population, randomizer, observer = None, pop_size = 1000, iterations = 20):
 
 	# optimizer: np.array(individuals) -> np.array(individual), np.array(floats(0-1))
 	# new_population: () -> np.array(individuals)
@@ -16,8 +16,8 @@ def pop_descent(optimizer, normalized_objective, new_population, randomizer, obs
 	# observer: np.array(individuals) --> ()
 	# pop_size: int (number of individuals)
 
-	replaced_individuals = 30
-	normalized_randomness_strength = 0.1
+	replaced_individuals = 300
+	normalized_randomness_strength = 0.05
 
 	# creating population of individuals - floats (coordinates)
 	population = np.array(new_population(pop_size))
@@ -35,7 +35,7 @@ def pop_descent(optimizer, normalized_objective, new_population, randomizer, obs
 		population = population[sorted_ind]
 
 		#calling SIMPLE RANDOMIZER
-		#population[0:replaced_individuals] = randomizer(population[-replaced_individuals:], normalized_randomness_strength)
+		population[0:replaced_individuals] = randomizer(population[-replaced_individuals:], normalized_randomness_strength)
 
 		#calling WEIGHTED RANDOMIZER
 		chosen_indices = np.array((random.choices(np.arange(population.shape[0]), weights = fitnesses, k = replaced_individuals)))
@@ -55,7 +55,7 @@ def pop_descent(optimizer, normalized_objective, new_population, randomizer, obs
 # Optimizer
 def optimizer(pop, normalized_objective = None):
 	#convert np.arrays to tensors
-	adam = tf.keras.optimizers.Adam(learning_rate = 1e-2)
+	adam = tf.keras.optimizers.Adam(learning_rate = 1e-3)
 
 	#computing gradient values
 	with tf.GradientTape() as tape:
@@ -81,6 +81,11 @@ def normalized_sin(pop):
 	values = tf.math.sin(pop)/2.0 + 0.5
 	return 1 - values
 
+@tf.function
+def normalized_complex_sin(pop):
+	values = (tf.math.sin(pop) + tf.math.sin(2*pop) + tf.math.sin(23*pop))/15 + 0.5
+	return 1 - values
+
 # @tf.function
 # def normalized_quartic(pop):
 # 	tensor_values = (4*tf.math.pow(pop, 4))-(3*(tf.math.pow(pop, 2))+(0.01*pop))
@@ -91,11 +96,10 @@ def normalized_quartic(pop):
 	tensor_values = (4*tf.math.pow(pop, 4))-(3*(tf.math.pow(pop, 2))+(0.01*pop))
 	return tf.math.divide(tf.cast(1, tf.float64), tf.math.add(tf.cast(1, tf.float64), tensor_values))
 
-
 def new_population(pop_size):
 	population = []
 	for i in range(pop_size):
-		coordinate = np.array((random.random()*1.-0.7))
+		coordinate = np.array((random.random()*20.-10))
 		population.append(coordinate)
 	return population
 
@@ -105,18 +109,27 @@ def simple_randomizer(population, normalized_amount):
 	gNoise = (np.random.normal(mu, sigma))*normalized_amount
 	return population + gNoise
 
-
-def make_drawing_things(objective_function):
-	def recorder(population, hist):
+def make_drawing_things(objective_function, number_of_replaced_individuals):
+	def graph_recorder(population, hist):
 		hist.append(max(objective_function(population).numpy()))
-		x = np.array(population)
-		y = objective_function(x).numpy()
+		allX = np.array(population)
+		allY = objective_function(population).numpy()
 
-		space = np.linspace(min(x)-10, max(x)+10, len(population)*20)
+		unreplacedX = np.array(population[-number_of_replaced_individuals:])
+		unreplacedY = objective_function(unreplacedX).numpy()
+
+		replacedX = np.array(population[0:number_of_replaced_individuals])
+		replacedY = objective_function(replacedX).numpy()
+
+		space = np.linspace(min(allX)-10, max(allX)+10, len(population)*20)
 		ySpace = objective_function(space)
 
-		plt.plot(space, ySpace), plt.scatter(x, y)
-		plt.show(block=False), plt.pause(0.0005), plt.close()
+		plt.plot(space, ySpace, zorder = 0)
+		plt.scatter(unreplacedX, unreplacedY, c='g', zorder = 10)
+		plt.scatter(replacedX, replacedY, c='r', zorder = 100)
+		plt.ylabel('red = new randomized individual')
+
+		plt.show(block=False), plt.pause(0.5), plt.close()
 		return
 
 	def min_recorder(population, hist):
@@ -130,14 +143,16 @@ def make_drawing_things(objective_function):
 		maximum_x_val, maximum_y_val = population[max_index], max_y_value
 		#return min
 		print("" + "Final minimized value of the function: "), print(maximum_x_val, maximum_y_val), print("")
-		plt.plot(hist), plt.ylabel('function value'), plt.show(block=False), plt.pause(1), plt.close()
+		plt.plot(hist), plt.xlabel('function value'), plt.show(block=False), plt.pause(1), plt.close()
 		return
-	return recorder, min_recorder
 
-recorder, min_recorder = make_drawing_things(normalized_quartic)
+	return graph_recorder, min_recorder
+
+number_of_replaced_individuals = 300
+graph_recorder, min_recorder = make_drawing_things(normalized_complex_sin, number_of_replaced_individuals)
 
 if __name__ == "__main__":
-	optimized_population, optimized_fitnesses = pop_descent(optimizer, normalized_quartic, new_population, simple_randomizer, observer = recorder)
+	optimized_population, optimized_fitnesses = pop_descent(optimizer, normalized_complex_sin, new_population, simple_randomizer, observer = graph_recorder)
 
 # dataset = [cat, dog]
 

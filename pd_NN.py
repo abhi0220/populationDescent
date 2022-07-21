@@ -46,7 +46,7 @@ def pop_descent(optimizer, new_population, randomizer, pop_size = 20, iterations
 		#print(randomizer_strength)
 
 		#calling WEIGHTED RANDOMIZER
-		#population[0:number_of_replaced_individuals] = randomizer(chosen_population, randomizer_strength, i)
+		population[0:number_of_replaced_individuals] = randomizer(chosen_population, randomizer_strength, i)
 		# (manual loss) if replacing best with randomized versions, works very well, no repeat losses in evaluator
 
 		#evaluating loss, accuracies after randomization
@@ -161,6 +161,7 @@ def NN_randomizer_manual_loss(original_population, normalized_amount):
 		gNoise = (np.random.normal(mu, sigma))*(normalized_amount[z])
 		#print(gNoise)
 		weights = np.array((original_population[z].get_weights()))
+
 		randomized_weights = weights + gNoise
 
 		model_clone.set_weights(randomized_weights)

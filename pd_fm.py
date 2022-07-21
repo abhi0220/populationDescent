@@ -174,7 +174,7 @@ def NN_randomizer_manual_loss(NN_object, normalized_amount):
 	model_clone = tf.keras.models.clone_model(NN_object.nn)
 	model_clone.set_weights(np.array(NN_object.nn.get_weights()))
 
-	mu, sigma = 0, 1e-2 #1e-4 for sin
+	mu, sigma = 0, (1e-2) #1e-4 for sin
 	gNoise = (np.random.normal(mu, sigma))*(normalized_amount)
 
 	weights = np.array((NN_object.nn.get_weights()))
@@ -362,12 +362,15 @@ class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
 
 
 # Parameters
-iterations = 595
+iterations = 2000
 pop_size = 8
 number_of_replaced_individuals = 4
 randomization = True
 CV_selection = True
 rr = 15 # leash for exploration
+
+batch_size = 64
+batches = 21
 
 
 ## MAIN RUNNING CODE
@@ -396,17 +399,6 @@ if __name__ == "__main__":
 		# evaluate from outside
 		total_hist, batch_hist = [], []
 		avg_total_loss, best_test_model_loss = Parameter_class_evaluator(optimized_population, total_hist, batch_hist)
-
-		# total_test_loss.append(avg_total_loss)
-		# batch_test_loss.append(avg_batch_loss)
-		# total_test_acc.append(avg_test_acc)
-
-		#amean = statistics.mean(vfitnesses)
-		#acc_data.append(amean)
-	# total_test_loss = np.array(total_test_loss)
-	# total_test_loss = 1/(1+(total_test_loss))
-	# batch_test_loss = np.array(batch_test_loss)
-	# batch_test_loss = 1/(1+(batch_test_loss))
 
 	print("Title: PD vs Hyperparameter Search")
 	print(""), print("CV_selection: %s, randomization=%s, %s iterations, %s models, %s individuals replaced, rr=%s" % (CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr))

@@ -4,6 +4,8 @@
 # pip3.9 install -r requirements.txt
 # python3.9 -m pd_classes_parameters
 
+# # # use this for sin wave with noise tests
+
 import random
 import math
 import matplotlib.pyplot as plt
@@ -140,22 +142,6 @@ def make_drawing_things(objective_function, number_of_replaced_individuals):
 
 def new_NN_individual():
 
-	# # Sin_With_Noise_Model
-	# model = tf.keras.Sequential([
- #    tf.keras.layers.Flatten(input_shape=(1,)),
- #    tf.keras.layers.Dense(700, activation='relu'),
- #    tf.keras.layers.Dense(700, activation='relu'),
- #    tf.keras.layers.Dense(1)
-	# ])
-
-	# # Sin_With_Noise_Model_Smaller
-	# model = tf.keras.Sequential([
- #    tf.keras.layers.Flatten(input_shape=(1,)),
- #    tf.keras.layers.Dense(10, activation='relu'),
- #    tf.keras.layers.Dense(5, activation='relu'),
- #    tf.keras.layers.Dense(1)
-	# ])
-
 	# Sin_Model_Regularization_Layers
 	model = tf.keras.Sequential([
 	tf.keras.layers.Flatten(input_shape=(1,)),
@@ -164,19 +150,17 @@ def new_NN_individual():
 	tf.keras.layers.Dense(1)
 	])
 
-
 	model.compile(optimizer='adam',
               loss=tf.keras.losses.MeanSquaredError(reduction="auto", name="mean_squared_error"),
               metrics=['accuracy'])
 
+
 	optimizer = tf.keras.optimizers.Adam()
-	LR_constant = 10**(np.random.normal(-3, 2))
-	reg_constant = 10**(np.random.normal(-3, 2))
+	LR_constant = 10**(np.random.normal(-3, 2)) * 0
+	reg_constant = 10**(np.random.normal(-3, 2)) * 0
 
-	reg_constant = 0
-	print("reg_constant"), print(reg_constant)
+	# creating NN object with initialized parameters
 	NN_object = NN_Individual(model, optimizer, LR_constant, reg_constant)
-
 	return NN_object
 
 
@@ -301,23 +285,6 @@ def NN_randomizer_manual_loss(NN_object, normalized_amount):
 	# print(normalized_amount)
 	print("new_reg_constant: %s" % new_LR_constant)
 
-
-
-
-
-
-	# CA_LR = NN_object.opt_obj.learning_rate
-
-	# # creating new Adam object with randomized LR
-	# mu, sigma = 1, normalized_amount
-	# new_learning_rate = CA_LR * np.exp(np.random.normal(mu, sigma))
-	# print(new_learning_rate)
-	# randomized_optimizer = tf.keras.optimizers.Adam()
-	# randomized_optimizer.learning_rate.assign(new_learning_rate)
-
-	# creating a new NN_Individual with new model (randomized weights) and new Adam (new LR)
-	# new_NN_Individual = NN_Individual(model_clone, randomized_optimizer) # with randomized LR
-	
 	new_NN_Individual = NN_Individual(model_clone, NN_object.opt_obj, new_LR_constant, new_reg_constant) # without randoimzed LR
 
 	return new_NN_Individual
@@ -641,8 +608,8 @@ C10_train_images, C10_test_images = C10_train_images / 255.0, C10_test_images / 
 
 # SOME PARAMETERS FOR QUICK ACCESS
 iterations = 1000
-pop_size = 25
-number_of_replaced_individuals = 10
+pop_size = 20
+number_of_replaced_individuals = 8
 normalized_objective = normalized_quartic
 
 

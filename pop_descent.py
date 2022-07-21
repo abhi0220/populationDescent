@@ -27,7 +27,7 @@ def pop_descent(optimizer, randomizer, new_population, pop_size = 5, number_of_r
 	for i in tqdm(range(iterations), desc = "Iterations"):
 
 		#calling OPTIMIZER
-		population, fitnesses = optimizer(population, normalized_objective)
+		population, Lfitnesses, fitnesses = optimizer(population)
 
 		#sorting losses
 		sorted_ind = np.argsort(fitnesses)
@@ -43,12 +43,13 @@ def pop_descent(optimizer, randomizer, new_population, pop_size = 5, number_of_r
 		population[0:number_of_replaced_individuals] = randomizer(chosen_population, randomizer_strength, i)
 
 		#evaluating loss(NN)/graph(coordinates)
-		if (recorder):
-			recorder(population, hist)
+	if (recorder):
+		recorder(population, hist)
 
 	#graph of loss optimization
 	if (final_observer):
 		final_observer(population, hist)
 
 
-	return population, fitnesses
+	return population, Lfitnesses, fitnesses
+

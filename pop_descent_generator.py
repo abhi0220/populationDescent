@@ -14,13 +14,13 @@ warnings.filterwarnings("ignore", category=DeprecationWarning)
 #from pop_descent_functions import optimizer, simple_randomizer, new_population, normalized_sin, min_recorder, graph_recorder, normalized_sin, normalized_quartic
 from pop_descent_functions import NN_optimizer, NN_randomizer, new_NN_population
 
-def pop_descent(optimizer, randomizer, new_population, pop_size = 5, number_of_replaced_individuals = 2, iterations = 10, final_observer = None, recorder = None, normalized_objective = None, normalized_randomness_strength = None):
+def pop_descent(optimizer, randomizer, new_population, pop_size = 5, number_of_replaced_individuals = 2):
 
 	#artificial_selection
 	def artificial_selection(population):
 
 		#calling OPTIMIZER
-		population, fitnesses = optimizer(population, normalized_objective)
+		population, fitnesses = optimizer(population)
 
 		#sorting losses
 		sorted_ind = np.argsort(fitnesses)
@@ -33,15 +33,7 @@ def pop_descent(optimizer, randomizer, new_population, pop_size = 5, number_of_r
 		randomizer_strength = 1 - (fitnesses[chosen_indices])
 
 		#calling WEIGHTED RANDOMIZER
-		population[0:number_of_replaced_individuals] = randomizer(chosen_population, randomizer_strength)
-
-		#evaluating loss(NN)/graph(coordinates)
-		if (recorder):
-			recorder(population, hist)
-
-		#graph of loss optimization
-		if (final_observer):
-			final_observer(population, hist)
+		#population[0:number_of_replaced_individuals] = randomizer(chosen_population, randomizer_strength)
 
 		return population
 

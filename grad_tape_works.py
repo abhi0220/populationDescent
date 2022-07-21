@@ -19,7 +19,7 @@ import statistics
 import dataclasses
 from dataclasses import dataclass
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras import datasets, layers, models
+from tensorflow.keras import dax tasets, layers, models
 #import keras.backend as K
 import copy
 from copy import deepcopy
