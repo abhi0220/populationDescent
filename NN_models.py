@@ -30,7 +30,7 @@ NN_Individual = namedtuple("NN_Individual", ["nn", "opt_obj", "LR_constant", "re
 # FUNCTIONS FOR NN IMPLEMENTATION
 def new_NN_individual():
 
-	# # FM Model (small)
+	# # FM Model (small) 
 	# model = tf.keras.Sequential([
 	# tf.keras.layers.Flatten(input_shape=(28, 28)),
  #    tf.keras.layers.Dense(128, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
