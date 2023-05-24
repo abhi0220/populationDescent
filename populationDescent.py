@@ -11,7 +11,7 @@ import tensorflow as tf
 
 # warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-def pop_descent_classes(Parameters, number_of_replaced_individuals, iterations):
+def populationDescent(Parameters, number_of_replaced_individuals, iterations):
 
 	# optimizer: (individual -> scalar) -> (individual -> individual)
 	# normalized_objective: individual -> (float0-1)

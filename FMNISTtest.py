@@ -26,7 +26,7 @@ import tensorflow as tf
 import time
 start_time = time.time()
 
-from pd_paramters import pop_descent_classes
+from populationDescent import populationDescent
 from NN_models import new_NN_individual
 
 # NN_Individual = namedtuple("NN_Individual", "nn opt_obj LR_constant reg_constant")
@@ -375,7 +375,7 @@ if __name__ == "__main__":
 		print(""), print("MAJOR ITERATION %s: " % (i+1)), print("")
 
 		#RUNNING OPTIMIZATION
-		optimized_population, lfitnesses, vfitnesses, history = pop_descent_classes(Parameters_object, number_of_replaced_individuals = number_of_replaced_individuals, iterations = iterations)
+		optimized_population, lfitnesses, vfitnesses, history = populationDescent(Parameters_object, number_of_replaced_individuals = number_of_replaced_individuals, iterations = iterations)
 
 		#measuring how long optimization took
 		time_lapsed = time.time() - start_time
