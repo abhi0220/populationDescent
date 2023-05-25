@@ -4,6 +4,8 @@
 # pip3.9 install -r requirements.txt
 # pip3.9 install -r requirements_m1.txt
 
+import csv
+
 import random
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
@@ -110,7 +112,7 @@ def NN_randomizer_manual_loss(NN_object, normalized_amount):
 	print(""), print("RANDOMIZING")
 	# original: (0, 1e-3), (0, normalized_amount), (0, normalized amount)
 
-	factor = 25
+	factor = 100
 
 	# randomizing NN weights
 	model_clone = tf.keras.models.clone_model(NN_object.nn)
@@ -136,7 +138,7 @@ def NN_randomizer_manual_loss(NN_object, normalized_amount):
 	print("%s new_reg_constant" % new_reg_constant), print("")
 
 	# randomizing learning_rates
-	mu, sigma = 0, (normalized_amount*factor) # 0.7, 1 #10 # 0.3
+	mu, sigma = 0, (normalized_amount*factor) # 0.7, 1, 10,x 0.3
 	randomization = 2**(np.random.normal(mu, sigma))
 	new_LR_constant = (NN_object.LR_constant) * randomization
 
@@ -184,7 +186,7 @@ def graph_history(history, trial, parameter_string, loss_data_string, best_train
 	plt.axhline(y = y[(len(y))-1])
 
 	plt.tight_layout()
-	plt.savefig("TEST_DATA/PD_trial_%s.png" % trial)
+	# plt.savefig("TEST_DATA/PD_trial_%s.png" % trial)
 	plt.show(block=True), plt.pause(0.5), plt.close()
 
 
@@ -313,6 +315,7 @@ def individual_to_params(
 def create_Parameters_NN_object(pop_size, randomization, CV_selection, rr):
 	history = []
 
+	# creates Parameter object to pass into Population Descent
 	object = individual_to_params(pop_size, new_NN_individual, NN_randomizer_manual_loss, NN_optimizer_manual_loss, observer, randomization=randomization, CV_selection=CV_selection, rr=rr, history=history)
 	object.population = object.population(pop_size) # initiazling population
 
@@ -349,16 +352,19 @@ class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
 trial = 1
 
 # Parameters
-iterations = 1000
-pop_size = 5
-number_of_replaced_individuals = 2
-randomization = True
-CV_selection = False
-rr = 15 # leash for exploration
+iterations = 1
+pop_size = 1
+number_of_replaced_individuals = 1
+randomization = False
+CV_selection = True
+rr = 15 # leash for exploration (how many iterations of gradient descent to run before randomization)
 
 batch_size = 64
 batches = 21
 
+model_num = 3 # model number (from NN_models.py)
+
+graph = False
 
 ## MAIN RUNNING CODE
 if __name__ == "__main__":
@@ -398,7 +404,8 @@ if __name__ == "__main__":
 	print(loss_data_string)
 	best_training_model_string = "normalized training loss of best model: %s" % best_model
 	print(best_training_model_string)
-	best_training_model_string_unnormalized = "unnormalized training loss of best model: %s" % ((1/best_model)-1)
+	best_training_model_loss_unnormalized = ((1/best_model)-1)
+	best_training_model_string_unnormalized = "unnormalized training loss of best model: %s" % best_training_model_loss_unnormalized
 	print(best_training_model_string_unnormalized)
 
 	print("")
@@ -406,13 +413,24 @@ if __name__ == "__main__":
 	print("")
 	best_test_model_loss_string = "normalized (1/1+loss) best model test loss: %s" % best_test_model_loss
 	print(best_test_model_loss_string)
-	best_test_model_string_unnormalized = "unnormalized test loss of best model: %s" % ((1/best_test_model_loss)-1)
+	best_test_model_loss_unnormalized = ((1/best_test_model_loss)-1)
+	best_test_model_string_unnormalized = "unnormalized test loss of best model: %s" % best_test_model_loss_unnormalized
 	print(best_test_model_string_unnormalized)
 
 	print("")
 	print("time lapsed: %s" % time_lapsed)
 
-	graph_history(history, trial, parameter_string, loss_data_string, best_training_model_string, best_test_model_loss_string)
+
+# Unnormalized Test Loss of best model;	Unnormalized Training loss of best model; Model #, CV_sel, randomize, iterations, pop size,	# replaced, rr (leash), time elapsed
+	
+	data = [[best_test_model_loss_unnormalized, best_training_model_loss_unnormalized, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, time_lapsed]]
+
+	with open('/Users/abhi/Documents/research_data/pd_data.csv', 'a', newline = '') as file:
+		writer = csv.writer(file)
+		writer.writerows(data)
+
+	if graph:
+		graph_history(history, trial, parameter_string, loss_data_string, best_training_model_string, best_test_model_loss_string)
 
 
 # print("--- %s seconds ---" % (time.time() - start_time))

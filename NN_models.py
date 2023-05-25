@@ -47,23 +47,23 @@ def new_NN_individual():
 	# ])
 
 	# # Keras Tutorial Model --> use for just overfitting rn
-	model = tf.keras.Sequential([
-	tf.keras.layers.Flatten(input_shape=(28, 28)),
-	tf.keras.layers.Dense(2, activation='tanh', kernel_regularizer=tf.keras.regularizers.l2(l=.0001)),
-	tf.keras.layers.Dense(10)
-	])
-
-
-	# # model #3: for trying to avoid overfitting, hyperparameter vs PD
 	# model = tf.keras.Sequential([
 	# tf.keras.layers.Flatten(input_shape=(28, 28)),
-	# tf.keras.layers.Dense(1024),
-	# tf.keras.layers.Dense(512),
-	# tf.keras.layers.Dense(256),
-    # tf.keras.layers.Dense(128, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
-    # tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
-    # tf.keras.layers.Dense(10)
+	# tf.keras.layers.Dense(2, activation='tanh', kernel_regularizer=tf.keras.regularizers.l2(l=.0001)),
+	# tf.keras.layers.Dense(10)
 	# ])
+
+
+	# model #3: for trying to avoid overfitting, hyperparameter vs PD
+	model = tf.keras.Sequential([
+	tf.keras.layers.Flatten(input_shape=(28, 28)),
+	tf.keras.layers.Dense(1024),
+	tf.keras.layers.Dense(512),
+	tf.keras.layers.Dense(256),
+    tf.keras.layers.Dense(128, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
+    tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
+    tf.keras.layers.Dense(10)
+	])
 
 	# eager_model = tf.function(model)
 
