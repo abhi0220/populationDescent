@@ -25,29 +25,26 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import datasets, layers, models
 import tensorflow as tf
 
-import time
-start_time = time.time()
-
 from populationDescent import populationDescent
-from NN_models import new_NN_individual
+from NN_models import new_pd_NN_individual, new_hps_NN_individual
 
 # NN_Individual = namedtuple("NN_Individual", "nn opt_obj LR_constant reg_constant")
 NN_Individual = namedtuple("NN_Individual", ["nn", "opt_obj", "LR_constant", "reg_constant"])
 tf.config.run_functions_eagerly(True)
 
 
-def NN_optimizer_manual_loss(NN_object):
+def NN_optimizer_manual_loss(NN_object, batches, epochs):
 	
 	# classification_NN_compiler(NN_object.nn)
 	batch_size = 64
-	epochs = 1
+	epochs = epochs
 	normalized_training_loss, normalized_validation_loss = [], []
 
 	print(""), print(NN_object), print("")
 	optimizer = NN_object.opt_obj
 	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
-	indices = np.random.choice(59999, size = (batch_size*21, ), replace=False)
+	indices = np.random.choice(59999, size = (batch_size*batches, ), replace=False)
 	vIndices = np.random.choice(4999, size = (batch_size*10, ), replace=False)
 
 	# FM dataset
@@ -93,26 +90,27 @@ def gradient_steps(lossfn, training_set, labels, epochs, NN_object):
 			# total_training_loss = model_loss + mreg_loss # REG randomization
 			total_training_loss = NN_object.LR_constant * (model_loss + mreg_loss) # LR + REG randomization
 
-			tf.print("training loss: %s" % model_loss) ## remove this --> put nothing (put at recombination)
+			# tf.print("training loss: %s" % model_loss) ## remove this --> put nothing (put at recombination)
 			# print("mreg los: %s" % mreg_loss), print("")
-			# print("total loss: %s" % total_training_loss), print("")
+			print("total loss: %s" % total_training_loss), print("")
 
 	# 	# print(" %s --> unnormalized training loss: %s" % model_loss), print("")
 
 	# 	# # calculate the gradients using our tape and then update the model weights
-		grads = tape.gradient(model_loss, NN_object.nn.trainable_variables)
+		# grads = tape.gradient(model_loss, NN_object.nn.trainable_variables)
 		# grads = gradient_steps(tape, model_loss, nn)
-		# grads = tape.gradient(total_training_loss, nn.nn.trainable_variables) ## with LR randomization
+		grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization
+
 		NN_object.opt_obj.apply_gradients(zip(grads, NN_object.nn.trainable_variables))
 
 	return model_loss
 
 
-def NN_randomizer_manual_loss(NN_object, normalized_amount):
+def NN_randomizer_manual_loss(NN_object, normalized_amount, input_factor):
 	print(""), print("RANDOMIZING")
 	# original: (0, 1e-3), (0, normalized_amount), (0, normalized amount)
 
-	factor = 100
+	factor = input_factor
 
 	# randomizing NN weights
 	model_clone = tf.keras.models.clone_model(NN_object.nn)
@@ -270,7 +268,7 @@ def individual_to_params(
 	def Parameter_class_randomizer(population: np.array(Individual), normalized_amount: float) -> np.array(Individual):
 		randomized_population = np.zeros(len(population), dtype=object)
 		for i in range(len(population)):
-			new_object = individual_randomizer(population[i], normalized_amount[i])
+			new_object = individual_randomizer(population[i], normalized_amount[i], input_factor)
 			randomized_population[i] = new_object
 
 		return randomized_population
@@ -279,7 +277,7 @@ def individual_to_params(
 		lFitnesses, vFitnesses = [], []
 		for i in range(len(population)):
 			print(""), print("model #%s" % (i+1)), print("")
-			normalized_training_loss, normalized_validation_loss = individual_optimizer(NN_Individual(*population[i]))
+			normalized_training_loss, normalized_validation_loss = individual_optimizer(NN_Individual(*population[i]), batches, epochs)
 			lFitnesses.append(normalized_training_loss)
 			vFitnesses.append(normalized_validation_loss)
 
@@ -316,7 +314,7 @@ def create_Parameters_NN_object(pop_size, randomization, CV_selection, rr):
 	history = []
 
 	# creates Parameter object to pass into Population Descent
-	object = individual_to_params(pop_size, new_NN_individual, NN_randomizer_manual_loss, NN_optimizer_manual_loss, observer, randomization=randomization, CV_selection=CV_selection, rr=rr, history=history)
+	object = individual_to_params(pop_size, new_pd_NN_individual, NN_randomizer_manual_loss, NN_optimizer_manual_loss, observer, randomization=randomization, CV_selection=CV_selection, rr=rr, history=history)
 	object.population = object.population(pop_size) # initiazling population
 
 	return object
@@ -349,36 +347,47 @@ class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
 
 
 
-trial = 1
+trial = 3
 
-# Parameters
-iterations = 1
-pop_size = 1
-number_of_replaced_individuals = 1
-randomization = False
-CV_selection = True
-rr = 15 # leash for exploration (how many iterations of gradient descent to run before randomization)
+# PARAMETERS
+iterations = 1250
+pop_size = 10
+number_of_replaced_individuals = 5
+randomization = True
+CV_selection = False
+rr = 10 # leash for exploration (how many iterations of gradient descent to run before randomization)
 
+# gradient descent parameters
 batch_size = 64
 batches = 21
+epochs = 1
 
-model_num = 3 # model number (from NN_models.py)
+grad_steps = iterations * epochs * batches * pop_size
+
+# randomization amount
+input_factor = 5
+
+# NN model chosen (from NN_models.py)
+model_num = 3
 
 graph = False
 
 ## MAIN RUNNING CODE
 if __name__ == "__main__":
 
-	#creating object to pass into pop descent
-	Parameters_object = create_Parameters_NN_object(pop_size, randomization, CV_selection, rr)
-
-	#creating lists to store data
-	loss_data, acc_data, total_test_loss, batch_test_loss, total_test_acc = [], [], [], [], []
-
 	# number of "trials"
-	for i in range(1):
+	for i in range(trial):
 
 		print(""), print("MAJOR ITERATION %s: " % (i+1)), print("")
+
+		#creating object to pass into pop descent
+		Parameters_object = create_Parameters_NN_object(pop_size, randomization, CV_selection, rr)
+
+		#creating lists to store data
+		loss_data, acc_data, total_test_loss, batch_test_loss, total_test_acc = [], [], [], [], []
+
+		import time
+		start_time = time.time()
 
 		#RUNNING OPTIMIZATION
 		optimized_population, lfitnesses, vfitnesses, history = populationDescent(Parameters_object, number_of_replaced_individuals = number_of_replaced_individuals, iterations = iterations)
@@ -396,41 +405,40 @@ if __name__ == "__main__":
 		total_hist, batch_hist = [], []
 		avg_total_loss, best_test_model_loss = Parameter_class_evaluator(optimized_population)
 
-	print(""), print("Title: PD vs Hyperparameter Search")
-	parameter_string = "CV_sel: %s, randomize=%s, %s iterations, %s models, %s replaced, rr=%s" % (CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr)
-	print(""), print(parameter_string)
-	print(""), print("")
-	loss_data_string = "avg normalized training loss of population on last epoch: %s" % loss_data
-	print(loss_data_string)
-	best_training_model_string = "normalized training loss of best model: %s" % best_model
-	print(best_training_model_string)
-	best_training_model_loss_unnormalized = ((1/best_model)-1)
-	best_training_model_string_unnormalized = "unnormalized training loss of best model: %s" % best_training_model_loss_unnormalized
-	print(best_training_model_string_unnormalized)
+		print(""), print("Title: PD vs Hyperparameter Search")
+		parameter_string = "CV_sel: %s, randomize=%s, %s iterations, %s models, %s replaced, rr=%s" % (CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr)
+		print(""), print(parameter_string)
+		print(""), print("")
+		loss_data_string = "avg normalized training loss of population on last epoch: %s" % loss_data
+		print(loss_data_string)
+		best_training_model_string = "normalized training loss of best model: %s" % best_model
+		print(best_training_model_string)
+		best_training_model_loss_unnormalized = ((1/best_model)-1)
+		best_training_model_string_unnormalized = "unnormalized training loss of best model: %s" % best_training_model_loss_unnormalized
+		print(best_training_model_string_unnormalized)
 
-	print("")
-	# print("normalized average test loss: %s" % avg_total_loss)
-	print("")
-	best_test_model_loss_string = "normalized (1/1+loss) best model test loss: %s" % best_test_model_loss
-	print(best_test_model_loss_string)
-	best_test_model_loss_unnormalized = ((1/best_test_model_loss)-1)
-	best_test_model_string_unnormalized = "unnormalized test loss of best model: %s" % best_test_model_loss_unnormalized
-	print(best_test_model_string_unnormalized)
+		print("")
+		# print("normalized average test loss: %s" % avg_total_loss)
+		print("")
+		best_test_model_loss_string = "normalized (1/1+loss) best model test loss: %s" % best_test_model_loss
+		print(best_test_model_loss_string)
+		best_test_model_loss_unnormalized = ((1/best_test_model_loss)-1)
+		best_test_model_string_unnormalized = "unnormalized test loss of best model: %s" % best_test_model_loss_unnormalized
+		print(best_test_model_string_unnormalized)
 
-	print("")
-	print("time lapsed: %s" % time_lapsed)
-
-
-# Unnormalized Test Loss of best model;	Unnormalized Training loss of best model; Model #, CV_sel, randomize, iterations, pop size,	# replaced, rr (leash), time elapsed
-	
-	data = [[best_test_model_loss_unnormalized, best_training_model_loss_unnormalized, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, time_lapsed]]
-
-	with open('/Users/abhi/Documents/research_data/pd_data.csv', 'a', newline = '') as file:
-		writer = csv.writer(file)
-		writer.writerows(data)
-
-	if graph:
-		graph_history(history, trial, parameter_string, loss_data_string, best_training_model_string, best_test_model_loss_string)
+		print("")
+		print("time lapsed: %s" % time_lapsed)
 
 
-# print("--- %s seconds ---" % (time.time() - start_time))
+		
+		data = [[best_test_model_loss_unnormalized, best_training_model_loss_unnormalized, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, time_lapsed]]
+
+		with open('/Users/abhi/Documents/research_data/pd_data.csv', 'a', newline = '') as file:
+			writer = csv.writer(file)
+			writer.writerows(data)
+
+		if graph:
+			graph_history(history, trial, parameter_string, loss_data_string, best_training_model_string, best_test_model_loss_string)
+
+
+

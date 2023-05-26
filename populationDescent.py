@@ -31,7 +31,7 @@ def populationDescent(Parameters, number_of_replaced_individuals, iterations):
 
 		if i%(Parameters.rr)==0:
 			if Parameters.CV_selection==False:
-				#sorting losses (training)
+				#sorting losses (based on training)
 				sorted_ind = np.argsort(lFitnesses)
 				lFitnesses = lFitnesses[sorted_ind] #worst to best
 				Parameters.population = Parameters.population[sorted_ind] #worst to best
@@ -43,7 +43,7 @@ def populationDescent(Parameters, number_of_replaced_individuals, iterations):
 
 
 			if Parameters.CV_selection==True:
-				#sorting losses (validation)
+				#sorting losses (based on validation)
 				sorted_ind = np.argsort(vFitnesses)
 				vFitnesses = vFitnesses[sorted_ind] #worst to best
 				Parameters.population = Parameters.population[sorted_ind] #worst to best

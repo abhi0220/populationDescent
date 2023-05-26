@@ -27,8 +27,8 @@ import tensorflow as tf
 
 NN_Individual = namedtuple("NN_Individual", ["nn", "opt_obj", "LR_constant", "reg_constant"])
 
-# FUNCTIONS FOR NN IMPLEMENTATION
-def new_NN_individual():
+# Testing population descent
+def new_pd_NN_individual():
 
 	# # FM Model (small) 
 	# model = tf.keras.Sequential([
@@ -46,24 +46,24 @@ def new_NN_individual():
  #    tf.keras.layers.Dense(10)
 	# ])
 
-	# # Keras Tutorial Model --> use for just overfitting rn
-	# model = tf.keras.Sequential([
-	# tf.keras.layers.Flatten(input_shape=(28, 28)),
-	# tf.keras.layers.Dense(2, activation='tanh', kernel_regularizer=tf.keras.regularizers.l2(l=.0001)),
-	# tf.keras.layers.Dense(10)
-	# ])
-
-
-	# model #3: for trying to avoid overfitting, hyperparameter vs PD
+	# model #2: Keras Tutorial Model --> use for just overfitting rn
 	model = tf.keras.Sequential([
 	tf.keras.layers.Flatten(input_shape=(28, 28)),
-	tf.keras.layers.Dense(1024),
-	tf.keras.layers.Dense(512),
-	tf.keras.layers.Dense(256),
-    tf.keras.layers.Dense(128, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
-    tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
-    tf.keras.layers.Dense(10)
+	tf.keras.layers.Dense(2, activation='tanh', kernel_regularizer=tf.keras.regularizers.l2(l=.0001)),
+	tf.keras.layers.Dense(10)
 	])
+
+
+	# # model #3: for trying to avoid overfitting, hyperparameter vs PD
+	# model = tf.keras.Sequential([
+	# tf.keras.layers.Flatten(input_shape=(28, 28)),
+	# tf.keras.layers.Dense(1024),
+	# tf.keras.layers.Dense(512),
+	# tf.keras.layers.Dense(256),
+ #    tf.keras.layers.Dense(128, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
+ #    tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
+ #    tf.keras.layers.Dense(10)
+	# ])
 
 	# eager_model = tf.function(model)
 
@@ -102,3 +102,66 @@ def new_NN_individual():
 	print(""), print(NN_object), print("")
 
 	return NN_object
+
+
+
+
+# Testing Hyperparameter search
+def new_hps_NN_individual():
+
+	# regularization_amount = [0.001, 0.1]
+	# learning_rate = [0.001, 0.1]
+
+	regularization_amount = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+	learning_rate = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+
+	# regularization_amount = [0.01, 0.001, 0.0001, 0.00001, 0.000001, 5e-1, 5e-2, 5e-3, 5e-4, 5e-5]
+	# learning_rate = [0.01, 0.001, 0.0001, 0.00001, 0.000001, 5e-1, 5e-2, 5e-3, 5e-4, 5e-5]
+
+
+	population = []
+	reg_list = []
+
+	for r in range(len(regularization_amount)):
+		for l in range(len(learning_rate)):
+
+
+			# model #2: Keras Tutorial Model --> use for just overfitting rn
+			model = tf.keras.Sequential([
+			tf.keras.layers.Flatten(input_shape=(28, 28)),
+			tf.keras.layers.Dense(2, activation='tanh', kernel_regularizer=tf.keras.regularizers.l2(l=regularization_amount[r])),
+			tf.keras.layers.Dense(10)
+			])
+			model_num = 2
+
+			# # model #3: for trying to avoid overfitting, hyperparameter vs PD
+			# model = tf.keras.Sequential([
+			# tf.keras.layers.Flatten(input_shape=(28, 28)),
+			# tf.keras.layers.Dense(1024),
+			# tf.keras.layers.Dense(512),
+			# tf.keras.layers.Dense(256),
+		 #    tf.keras.layers.Dense(128, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=regularization_amount[r])),
+		 #    tf.keras.layers.Dense(64, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=regularization_amount[r])),
+		 #    tf.keras.layers.Dense(10)
+			# ])
+			# model_num = 3
+
+
+			optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate[l])
+			model.compile(optimizer=optimizer,
+			         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+			         metrics=['accuracy'])
+
+			population.append(model)
+			reg_list.append(regularization_amount[r])
+
+	# print(population)
+
+	population = np.array(population)
+	print(len(population))
+
+
+	return population, reg_list, model_num
+
+
+
