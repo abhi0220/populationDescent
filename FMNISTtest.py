@@ -33,6 +33,7 @@ NN_Individual = namedtuple("NN_Individual", ["nn", "opt_obj", "LR_constant", "re
 tf.config.run_functions_eagerly(True)
 
 
+# calls gradient steps to train model, returns NORMALIZED training and validation loss
 def NN_optimizer_manual_loss(NN_object, batches, epochs):
 	
 	# classification_NN_compiler(NN_object.nn)
@@ -51,7 +52,7 @@ def NN_optimizer_manual_loss(NN_object, batches, epochs):
 	random_batch_FM_train_images, random_batch_FM_train_labels = FM_train_images[indices], FM_train_labels[indices]
 	random_batch_FM_validation_images, random_batch_FM_validation_labels = FM_validation_images[vIndices], FM_validation_labels[vIndices]
 
-	model_loss = gradient_steps(lossfn, random_batch_FM_train_images, random_batch_FM_train_labels, epochs, NN_object)
+	model_loss = gradient_steps(lossfn, random_batch_FM_train_images, random_batch_FM_train_labels, batch_size, epochs, NN_object)
 
 	validation_loss = lossfn(random_batch_FM_validation_labels, NN_object.nn(random_batch_FM_validation_images))
 	tf.print("validation loss: %s" % validation_loss), print("")
@@ -70,39 +71,38 @@ def NN_optimizer_manual_loss(NN_object, batches, epochs):
 
 # function optimized to take gradient steps with tf variables
 @tf.function
-def gradient_steps(lossfn, training_set, labels, epochs, NN_object):
+def gradient_steps(lossfn, training_set, labels, batch_size, epochs, NN_object):
 
 	for e in range(epochs):
-		
-		with tf.GradientTape() as tape:
+		for x_batch, y_batch in tf.data.Dataset.from_tensor_slices((training_set, labels)).batch(batch_size):
+			with tf.GradientTape() as tape:
 
-			# make a prediction using the model and then calculate the loss
-			model_loss = lossfn(labels, NN_object.nn(training_set))
-		
-			# use regularization constant
-			regularization_loss = NN_object.nn.losses
-			reg_loss = regularization_loss[0]
-			# reg_loss = ((regularization_loss[0] + regularization_loss[1]))
-			mreg_loss = reg_loss * NN_object.reg_constant
-			# mreg_loss = reg_loss * 1
+				# make a prediction using the model and then calculate the loss
+				model_loss = lossfn(y_batch, NN_object.nn(x_batch))
+			
+				# use regularization constant
+				regularization_loss = NN_object.nn.losses
+				reg_loss = regularization_loss[0]
 
-			# total_training_loss = tf.math.multiply(nn.LR_constant, model_loss) # LR randomization
-			# total_training_loss = model_loss + mreg_loss # REG randomization
-			total_training_loss = NN_object.LR_constant * (model_loss + mreg_loss) # LR + REG randomization
+				# reg_loss = ((regularization_loss[0] + regularization_loss[1]))
+				mreg_loss = reg_loss * NN_object.reg_constant
 
-			# tf.print("training loss: %s" % model_loss) ## remove this --> put nothing (put at recombination)
-			# print("mreg los: %s" % mreg_loss), print("")
-			print("total loss: %s" % total_training_loss), print("")
+				total_training_loss = NN_object.LR_constant * (model_loss + mreg_loss) # LR + REG randomization
 
-	# 	# print(" %s --> unnormalized training loss: %s" % model_loss), print("")
+		 	# print(" %s --> unnormalized training loss: %s" % model_loss), print("")
 
-	# 	# # calculate the gradients using our tape and then update the model weights
-		# grads = tape.gradient(model_loss, NN_object.nn.trainable_variables)
-		# grads = gradient_steps(tape, model_loss, nn)
-		grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization
+			# grads = tape.gradient(model_loss, NN_object.nn.trainable_variables)
 
-		NN_object.opt_obj.apply_gradients(zip(grads, NN_object.nn.trainable_variables))
+			# # calculate the gradients using our tape and then update the model weights
+			# loss_plus_regularization = reg_loss + model_loss
+			# grads = tape.gradient(loss_plus_regularization, NN_object.nn.trainable_variables)
 
+			# grads = gradient_steps(tape, model_loss, nn)
+			grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization
+
+			NN_object.opt_obj.apply_gradients(zip(grads, NN_object.nn.trainable_variables))
+	tf.print("training loss: %s" % model_loss) ## remove this --> put nothing (put at recombination)
+	print("")
 	return model_loss
 
 
@@ -158,7 +158,7 @@ def observer(NN_object, tIndices):
 	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 	test_loss = lossfn(random_batch_FM_validation_labels, NN_object.nn(random_batch_FM_validation_images))
 
-	ntest_loss = 1/(1+test_loss)
+	# ntest_loss = 1/(1+test_loss)
 
 	return test_loss
 
@@ -185,45 +185,60 @@ def graph_history(history, trial, parameter_string, loss_data_string, best_train
 
 	plt.tight_layout()
 	# plt.savefig("TEST_DATA/PD_trial_%s.png" % trial)
-	plt.show(block=True), plt.pause(0.5), plt.close()
+	plt.show(block=True), plt.close()
+	plt.close('all')
 
 
+# returns training and test loss (UNNORMALIZED) on data chosen with random seed
 def evaluator(NN_object):
 	# classification_NN_compiler(NN_object) # only if using manual loss optimizer/randomizer
 	batch_size = 64
 
 	np.random.seed(0)
-	tIndices = np.random.choice(4999, size = (batch_size*25, ), replace=False)
-	random_batch_FM_test_images, random_batch_FM_test_labels = FM_test_images[tIndices], FM_test_labels[tIndices]
+	eIndices = np.random.choice(4999, size = (batch_size*25, ), replace=False)
+	random_batch_FM_train_images, random_batch_FM_train_labels, random_batch_FM_test_images, random_batch_FM_test_labels = FM_train_images[eIndices], FM_train_labels[eIndices], FM_test_images[eIndices], FM_test_labels[eIndices]
 	
 	print(""), print(""), print("Evaluating models on test data after randomization")
 
 	# test_loss, test_acc = model.evaluate(test_images,  test_labels, verbose=2)
+
+	# evaluating on train, test images
 	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-	print(type(NN_object))
+	train_loss = lossfn(random_batch_FM_train_labels, NN_object.nn(random_batch_FM_train_images))
 	test_loss = lossfn(random_batch_FM_test_labels, NN_object.nn(random_batch_FM_test_images))
+
+	# # using .evaluate (returns same loss as using loss function, rounding differences after 2 decimal places)
+	# optimizer = tf.keras.optimizers.Adam()
+	# NN_object.nn.compile(optimizer=optimizer,
+	#          loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+	#          metrics=['accuracy'])
+	# training_loss, training_accuracy = NN_object.nn.evaluate(random_batch_FM_train_images, random_batch_FM_train_labels, batch_size = batch_size)
+	
 
 	# test_loss, test_acc = NN_object.nn.evaluate(random_batch_FM_test_images, random_batch_FM_test_labels, batch_size = batch_size)
 
-	ntest_loss = 1/(1+test_loss)
+	ntest_loss = 2/(2+test_loss)
+	print("unnormalized train loss: %s" % train_loss)
 	print("unnormalized test loss: %s" % test_loss)
-	print("normalized (1/1+loss) test loss: %s" % ntest_loss)
+	# print("normalized (1/1+loss) test loss: %s" % ntest_loss)
 
-	return ntest_loss
+	return train_loss, test_loss # unnormalized
 
 # External Evaluator
 def Parameter_class_evaluator(population):
-	all_test_loss, all_acc = [], []
+	pop_train_loss, pop_test_loss = [], []
 
 	for i in range(len(population)):
-		individual_total_loss = evaluator(population[i])
+		individual_train_loss, individual_test_loss = evaluator(population[i])
 
-		all_test_loss.append(individual_total_loss)
+		pop_train_loss.append(individual_train_loss)
+		pop_test_loss.append(individual_test_loss)
 
-	avg_total_test_loss = np.mean(all_test_loss)
-	best_test_model_loss = np.max(all_test_loss)
+	# avg_total_test_loss = np.mean(all_test_loss)
+	best_train_model_loss = np.min(pop_train_loss)
+	best_test_model_loss = np.min(pop_test_loss)
 
-	return avg_total_test_loss, best_test_model_loss
+	return best_train_model_loss, best_test_model_loss
 
 # CLASSES
 Individual = TypeVar('Individual')
@@ -347,15 +362,16 @@ class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
 
 
 
-trial = 3
+trial = 2
 
 # PARAMETERS
-iterations = 1250
+iterations = 1000
+
 pop_size = 10
 number_of_replaced_individuals = 5
 randomization = True
 CV_selection = False
-rr = 10 # leash for exploration (how many iterations of gradient descent to run before randomization)
+rr = 1 # leash for exploration (how many iterations of gradient descent to run before randomization)
 
 # gradient descent parameters
 batch_size = 64
@@ -365,12 +381,13 @@ epochs = 1
 grad_steps = iterations * epochs * batches * pop_size
 
 # randomization amount
+# 5 works well
 input_factor = 5
 
 # NN model chosen (from NN_models.py)
-model_num = 3
+model_num = 2
 
-graph = False
+graph = True
 
 ## MAIN RUNNING CODE
 if __name__ == "__main__":
@@ -396,49 +413,49 @@ if __name__ == "__main__":
 		time_lapsed = time.time() - start_time
 		print(""), print(""), print("time:"), print("--- %s seconds ---" % time_lapsed), print(""), print("")
 
-
-		best_model = np.max(lfitnesses)
-		lmean = statistics.mean(lfitnesses)
-		loss_data.append(lmean)
+		# # using normalized loss data
+		# best_model = np.max(lfitnesses)
+		# lmean = statistics.mean(lfitnesses)
+		# loss_data.append(lmean)
 
 		# evaluate from outside
 		total_hist, batch_hist = [], []
-		avg_total_loss, best_test_model_loss = Parameter_class_evaluator(optimized_population)
 
-		print(""), print("Title: PD vs Hyperparameter Search")
+		# returns UNNORMALIZED training and test loss, data chosen with a random seed
+		best_train_model_loss, best_test_model_loss = Parameter_class_evaluator(optimized_population)
+
+		# print(""), print("Title: PD vs Hyperparameter Search")
 		parameter_string = "CV_sel: %s, randomize=%s, %s iterations, %s models, %s replaced, rr=%s" % (CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr)
-		print(""), print(parameter_string)
-		print(""), print("")
-		loss_data_string = "avg normalized training loss of population on last epoch: %s" % loss_data
-		print(loss_data_string)
-		best_training_model_string = "normalized training loss of best model: %s" % best_model
-		print(best_training_model_string)
-		best_training_model_loss_unnormalized = ((1/best_model)-1)
-		best_training_model_string_unnormalized = "unnormalized training loss of best model: %s" % best_training_model_loss_unnormalized
-		print(best_training_model_string_unnormalized)
+		# print(""), print(parameter_string)
+		# print(""), print("")
 
-		print("")
-		# print("normalized average test loss: %s" % avg_total_loss)
-		print("")
-		best_test_model_loss_string = "normalized (1/1+loss) best model test loss: %s" % best_test_model_loss
-		print(best_test_model_loss_string)
-		best_test_model_loss_unnormalized = ((1/best_test_model_loss)-1)
-		best_test_model_string_unnormalized = "unnormalized test loss of best model: %s" % best_test_model_loss_unnormalized
-		print(best_test_model_string_unnormalized)
+		# best_training_model_loss_unnormalized = ((1/best_model)-1)
+		# best_training_model_string_unnormalized = "unnormalized training loss of best model: %s" % best_train_model_loss
+		# print(best_training_model_string_unnormalized)
 
-		print("")
-		print("time lapsed: %s" % time_lapsed)
+		# print("")
+		# # print("normalized average test loss: %s" % avg_total_loss)
+		# print("")
+		# best_test_model_loss_string = "normalized (1/1+loss) best model test loss: %s" % best_test_model_loss
+		# print(best_test_model_loss_string)
+		# best_test_model_loss_unnormalized = ((1/best_test_model_loss)-1)
+		# best_test_model_string_unnormalized = "unnormalized test loss of best model: %s" % best_test_model_loss_unnormalized
+		# print(best_test_model_string_unnormalized)
+
+		# print("")
+		# print("time lapsed: %s" % time_lapsed)
 
 
-		
-		data = [[best_test_model_loss_unnormalized, best_training_model_loss_unnormalized, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, time_lapsed]]
+
+		# writing data to excel file
+		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, time_lapsed]]
 
 		with open('/Users/abhi/Documents/research_data/pd_data.csv', 'a', newline = '') as file:
 			writer = csv.writer(file)
 			writer.writerows(data)
 
-		if graph:
-			graph_history(history, trial, parameter_string, loss_data_string, best_training_model_string, best_test_model_loss_string)
+		# if graph:
+		# 	graph_history(history, trial, parameter_string, loss_data_string, best_training_model_string, best_test_model_loss_string)
 
 
 
