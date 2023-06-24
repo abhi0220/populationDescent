@@ -82,17 +82,17 @@ def graph_history(history, trial, model_string, training_loss_data_string, test_
 
 	plt.scatter(x, history, s=20)
 
-	plt.tight_layout()
-	plt.title("HyperParameter Search trial #%s" % trial)
-	plt.ylabel('unnormalized loss of best model')
-	plt.xlabel('iterations')
+	# plt.tight_layout()
+	# plt.title("HyperParameter Search trial #%s" % trial)
+	# plt.ylabel('unnormalized loss of best model')
+	# plt.xlabel('iterations')
 
-	plt.xlabel("%s\n\n%s\n\n%s\n\n%s\n\n%s" % (model_string, training_loss_data_string, test_loss_data_string, best_lr_data, best_reg_amount_string))
+	# plt.xlabel("%s\n\n%s\n\n%s\n\n%s\n\n%s" % (model_string, training_loss_data_string, test_loss_data_string, best_lr_data, best_reg_amount_string))
 
 	# for i,j in zip(x,y):
 	# 	plt.annotate(str(j),xy=(i,j))
-	plt.text(x[(len(x))-1], y[(len(y))-1], y[(len(y))-1])
-	plt.axhline(y = y[(len(y))-1])
+	# plt.text(x[(len(x))-1], y[(len(y))-1], y[(len(y))-1])
+	# plt.axhline(y = y[(len(y))-1])
 
 	plt.tight_layout()
 	# plt.savefig("TEST_DATA/HP_trial_%s.png" % trial)
@@ -101,23 +101,24 @@ def graph_history(history, trial, model_string, training_loss_data_string, test_
 
 
 
-
-# ALL PARAMETERS
-
+# Observation
 observer_history = []
-rr = 3
+rr = 1
 
 trial = 1
 
-iterations = 500
-epochs = 1
+
+# PARAMETERS
+iterations = 1000
+
 batch_size = 64
-batches = 20
+batches = 21
+epochs = 1
 
 gradient_steps = iterations * epochs * batches * (len(population))
 
 
-graph = False
+graph = True
 
 
 
@@ -142,7 +143,7 @@ for i in tqdm(range(iterations)):
 	for j in range(len(population)):
 
 		print("model %s" % (j+1))
-		population[j].fit(random_batch_FM_train_images, random_batch_FM_train_labels, validation_data = (random_batch_FM_validation_images, random_batch_FM_validation_labels), epochs=epochs, verbose=1, batch_size = batch_size)
+		population[j].fit(random_batch_FM_train_images, random_batch_FM_train_labels, validation_data = (random_batch_FM_validation_images, random_batch_FM_validation_labels), epochs=epochs, verbose=1, batch_size=batch_size)
 
 		print("regularization_amount: %s" % reg_list[j])
 		print("learning rate: %s" % population[j].optimizer.learning_rate)
@@ -150,12 +151,18 @@ for i in tqdm(range(iterations)):
 
 		# population_training_losses.append(training_loss)
 
-	# 	# observing optimization progress
-	# 	if (i%rr)==0:
-	# 			if i!=(iterations-1):
-	# 				individual_observer_loss = observer(population[j], tIndices)
-	# 				population_training_losses.append(individual_observer_loss)
+		# observing optimization progress
+		if (i%rr)==0:
+				if i!=(iterations-1):
+					individual_observer_loss = observer(population[j], tIndices)
+					population_training_losses.append(individual_observer_loss)
 
+
+	if (i%rr)==0:
+		if population_training_losses:
+			population_training_losses = np.array(population_training_losses)
+			observer_history.append(np.min(population_training_losses))
+			population_training_losses = []
 
 	# if (i%rr)==0:
 	# 		if i!=(iterations-1):
@@ -167,20 +174,19 @@ for i in tqdm(range(iterations)):
 
 time_lapsed = time.time() - start_time
 
+
+
 # # Evaluating on test data
-
-# things to set seed for evaluation
-
 np.random.seed(0)
-tIndices = np.random.choice(4999, size = (batch_size*25, ), replace=False)
-random_batch_FM_test_images, random_batch_FM_test_labels = FM_test_images[tIndices], FM_test_labels[tIndices]
+eIndices = np.random.choice(4999, size = (batch_size*25, ), replace=False)
+random_batch_FM_train_images, random_batch_FM_train_labels, random_batch_FM_test_images, random_batch_FM_test_labels = FM_train_images[eIndices], FM_train_labels[eIndices], FM_test_images[eIndices], FM_test_labels[eIndices]
 
 training_losses, evaluation_losses, evaluation_accuracies = [], [], []
 
 for h in range(len(population)):
 	print("model %s" % (h+1))
 
-	training_loss, training_accuracy = population[h].evaluate(random_batch_FM_test_images, random_batch_FM_test_labels, batch_size = batch_size)
+	training_loss, training_accuracy = population[h].evaluate(random_batch_FM_train_images, random_batch_FM_train_labels, batch_size = batch_size)
 	test_loss, test_acc = population[h].evaluate(random_batch_FM_test_images, random_batch_FM_test_labels, batch_size = batch_size)
 
 	ntest_loss = 1/(1+test_loss)
@@ -207,7 +213,7 @@ test_acc_data = statistics.mean(evaluation_accuracies)
 
 
 
-
+# printing all data to console
 print("")
 model_string = "model #%s" % (best_index+1)
 print(model_string)
@@ -221,17 +227,18 @@ print(best_lr_data)
 best_reg_amount_string = "best reg amount: %s" % best_reg_amount
 print(best_reg_amount_string), print("")
 
-if graph:
-	graph_history(observer_history, trial, model_string, training_loss_data_string, test_loss_data_string, best_lr_data, best_reg_amount_string)
 
 
-# test_loss, training loss, reg_amt, learning_rate
-
+# writing data to excel file
 data = [[best_test_loss_unnormalized, best_training_model_loss_unnormalized, gradient_steps, model_num, best_reg_amount, best_lr, iterations, time_lapsed]]
 
-with open('/Users/abhi/Documents/research_data/hp_search_data.csv', 'a', newline = '') as file:
+with open('/Users/abhi/Documents/research_data/hp_search_data_model4.csv', 'a', newline = '') as file:
 	writer = csv.writer(file)
 	writer.writerows(data)
+
+# graphing data
+if graph:
+	graph_history(observer_history, trial, model_string, training_loss_data_string, test_loss_data_string, best_lr_data, best_reg_amount_string)
 
 
 

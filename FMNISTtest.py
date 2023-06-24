@@ -28,7 +28,6 @@ import tensorflow as tf
 from populationDescent import populationDescent
 from NN_models import new_pd_NN_individual, new_hps_NN_individual
 
-# NN_Individual = namedtuple("NN_Individual", "nn opt_obj LR_constant reg_constant")
 NN_Individual = namedtuple("NN_Individual", ["nn", "opt_obj", "LR_constant", "reg_constant"])
 tf.config.run_functions_eagerly(True)
 
@@ -82,23 +81,16 @@ def gradient_steps(lossfn, training_set, labels, batch_size, epochs, NN_object):
 			
 				# use regularization constant
 				regularization_loss = NN_object.nn.losses
-				reg_loss = regularization_loss[0]
+				if len(regularization_loss) == 0:
+					reg_loss = 0
+				else:
+					reg_loss = regularization_loss[0]
 
-				# reg_loss = ((regularization_loss[0] + regularization_loss[1]))
 				mreg_loss = reg_loss * NN_object.reg_constant
-
 				total_training_loss = NN_object.LR_constant * (model_loss + mreg_loss) # LR + REG randomization
 
-		 	# print(" %s --> unnormalized training loss: %s" % model_loss), print("")
-
-			# grads = tape.gradient(model_loss, NN_object.nn.trainable_variables)
-
-			# # calculate the gradients using our tape and then update the model weights
-			# loss_plus_regularization = reg_loss + model_loss
-			# grads = tape.gradient(loss_plus_regularization, NN_object.nn.trainable_variables)
-
-			# grads = gradient_steps(tape, model_loss, nn)
-			grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization
+			# calculate the gradients using our tape and then update the model weights
+			grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization and regularization loss
 
 			NN_object.opt_obj.apply_gradients(zip(grads, NN_object.nn.trainable_variables))
 	tf.print("training loss: %s" % model_loss) ## remove this --> put nothing (put at recombination)
@@ -130,21 +122,20 @@ def NN_randomizer_manual_loss(NN_object, normalized_amount, input_factor):
 	randomization = 2**(np.random.normal(mu, sigma))
 	new_reg_constant = (NN_object.reg_constant) * randomization
 
-	print("reg randomization: %s" % randomization)
-	print("%s NN_object.reg_constant" % NN_object.reg_constant)
-	# print(normalized_amount)
-	print("%s new_reg_constant" % new_reg_constant), print("")
+	# print("reg randomization: %s" % randomization)
+	# print("%s NN_object.reg_constant" % NN_object.reg_constant)
+	# print("%s new_reg_constant" % new_reg_constant), print("")
 
 	# randomizing learning_rates
 	mu, sigma = 0, (normalized_amount*factor) # 0.7, 1, 10,x 0.3
 	randomization = 2**(np.random.normal(mu, sigma))
 	new_LR_constant = (NN_object.LR_constant) * randomization
 
-	print("LR randomization: %s" % randomization)
-	print("%s NN_object.LR_constant" % NN_object.LR_constant)
-	print(normalized_amount)
-	print("%s new_lr_constant" % new_LR_constant)
-	print(""), print("factor=%s" % factor)
+	# print("LR randomization: %s" % randomization)
+	# print("%s NN_object.LR_constant" % NN_object.LR_constant)
+	# print(normalized_amount)
+	# print("%s new_lr_constant" % new_LR_constant)
+	# print(""), print("factor=%s" % factor)
 
 	new_NN_Individual = NN_Individual(model_clone, NN_object.opt_obj, new_LR_constant, new_reg_constant) # without randoimzed LR
 
@@ -154,34 +145,34 @@ def NN_randomizer_manual_loss(NN_object, normalized_amount, input_factor):
 def observer(NN_object, tIndices):
 	random_batch_FM_validation_images, random_batch_FM_validation_labels = FM_validation_images[tIndices], FM_validation_labels[tIndices]
 
-	print(type(NN_object))
 	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 	test_loss = lossfn(random_batch_FM_validation_labels, NN_object.nn(random_batch_FM_validation_images))
-
+	print(test_loss)
 	# ntest_loss = 1/(1+test_loss)
 
 	return test_loss
 
-def graph_history(history, trial, parameter_string, loss_data_string, best_training_model_string, best_test_model_loss_string):
+def graph_history(history):
 	integers = [i for i in range(1, (len(history))+1)]
 	x = [j * rr for j in integers]
 	y = history
-
+	print("slkdjf;sakdjf;aslkdj")
+	print('history')
 	plt.scatter(x, history, s=20)
 	# plt.rcParams.update({'font.size': 10})
 	# figure(figsize=(3, 2), dpi=80)
 
-	plt.tight_layout()
-	plt.title("PD trial #%s" % trial)
-	plt.ylabel('unnormalized loss of best model')
-	plt.xlabel('iterations')
+	# plt.tight_layout()
+	# plt.title("PD trial #%s" % trial)
+	# plt.ylabel('unnormalized loss of best model')
+	# plt.xlabel('iterations')
 
-	plt.xlabel("%s\n\n%s\n\n%s\n\n%s" % (parameter_string, loss_data_string, best_training_model_string, best_test_model_loss_string))
+	# plt.xlabel("%s\n\n%s\n\n%s\n\n%s" % (parameter_string, loss_data_string, best_training_model_string, best_test_model_loss_string))
 
 	# for i,j in zip(x,y):
 	# 	plt.annotate(str(j),xy=(i,j))
-	plt.text(x[(len(x))-1], y[(len(y))-1], y[(len(y))-1])
-	plt.axhline(y = y[(len(y))-1])
+	# plt.text(x[(len(x))-1], y[(len(y))-1], y[(len(y))-1])
+	# plt.axhline(y = y[(len(y))-1])
 
 	plt.tight_layout()
 	# plt.savefig("TEST_DATA/PD_trial_%s.png" % trial)
@@ -200,22 +191,10 @@ def evaluator(NN_object):
 	
 	print(""), print(""), print("Evaluating models on test data after randomization")
 
-	# test_loss, test_acc = model.evaluate(test_images,  test_labels, verbose=2)
-
 	# evaluating on train, test images
 	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 	train_loss = lossfn(random_batch_FM_train_labels, NN_object.nn(random_batch_FM_train_images))
 	test_loss = lossfn(random_batch_FM_test_labels, NN_object.nn(random_batch_FM_test_images))
-
-	# # using .evaluate (returns same loss as using loss function, rounding differences after 2 decimal places)
-	# optimizer = tf.keras.optimizers.Adam()
-	# NN_object.nn.compile(optimizer=optimizer,
-	#          loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-	#          metrics=['accuracy'])
-	# training_loss, training_accuracy = NN_object.nn.evaluate(random_batch_FM_train_images, random_batch_FM_train_labels, batch_size = batch_size)
-	
-
-	# test_loss, test_acc = NN_object.nn.evaluate(random_batch_FM_test_images, random_batch_FM_test_labels, batch_size = batch_size)
 
 	ntest_loss = 2/(2+test_loss)
 	print("unnormalized train loss: %s" % train_loss)
@@ -254,6 +233,7 @@ class Parameters(Generic[Individual]):
 	CV_selection: bool
 	rr: int
 	history: [np.array]
+	fine_tuner: Callable[[np.array], np.array]
 
 # updated np typing
 	# population: Callable[[int], npt.NDArray[Individual]]
@@ -277,8 +257,9 @@ def individual_to_params(
 	def Parameter_new_population(pop_size: int) -> np.array(Individual):
 		population = np.zeros(pop_size, dtype=object)
 		for i in range(pop_size):
-			population[i]= new_individual()
-		return population
+			population[i], model_num = new_individual()
+
+		return population, model_num
 
 	def Parameter_class_randomizer(population: np.array(Individual), normalized_amount: float) -> np.array(Individual):
 		randomized_population = np.zeros(len(population), dtype=object)
@@ -321,7 +302,15 @@ def individual_to_params(
 		history.append(best_test_model_loss) ## main action of observer (to graph optimization progress later)
 		return
 
-	Parameters_object = Parameters(Parameter_new_population, Parameter_class_randomizer, Parameter_class_optimizer, Parameter_class_observer, randomization, CV_selection, rr, history)
+	def fine_tuner(population: np.array(Individual)) -> np.array(Individual):
+		for j in range(5):
+			for i in range(len(population)):
+				print(""), print("Fine-Tuning models"), print("model #%s" % (i+1)), print("")
+				normalized_training_loss, normalized_validation_loss = individual_optimizer(NN_Individual(*population[i]), 21, 1)
+
+		return
+
+	Parameters_object = Parameters(Parameter_new_population, Parameter_class_randomizer, Parameter_class_optimizer, Parameter_class_observer, randomization, CV_selection, rr, history, fine_tuner)
 	return Parameters_object
 
 
@@ -330,9 +319,9 @@ def create_Parameters_NN_object(pop_size, randomization, CV_selection, rr):
 
 	# creates Parameter object to pass into Population Descent
 	object = individual_to_params(pop_size, new_pd_NN_individual, NN_randomizer_manual_loss, NN_optimizer_manual_loss, observer, randomization=randomization, CV_selection=CV_selection, rr=rr, history=history)
-	object.population = object.population(pop_size) # initiazling population
+	object.population, model_num = object.population(pop_size) # initiazling population
 
-	return object
+	return object, model_num
 
 
 # Fashion-MNIST dataset
@@ -340,6 +329,7 @@ fashion_mnist = tf.keras.datasets.fashion_mnist
 (FM_train_images, FM_train_labels), (FM_test_images, FM_test_labels) = fashion_mnist.load_data()
 
 sample_shape = FM_train_images[0].shape
+print(sample_shape)
 img_width, img_height = sample_shape[0], sample_shape[1]
 FM_input_shape = (img_width, img_height, 1)
 
@@ -362,15 +352,15 @@ class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
 
 
 
-trial = 2
+trial = 1
 
 # PARAMETERS
 iterations = 1000
 
-pop_size = 10
-number_of_replaced_individuals = 5
+pop_size = 5
+number_of_replaced_individuals = 2
 randomization = True
-CV_selection = False
+CV_selection = True
 rr = 1 # leash for exploration (how many iterations of gradient descent to run before randomization)
 
 # gradient descent parameters
@@ -382,10 +372,10 @@ grad_steps = iterations * epochs * batches * pop_size
 
 # randomization amount
 # 5 works well
-input_factor = 5
+input_factor = 15
 
-# NN model chosen (from NN_models.py)
-model_num = 2
+# # NN model chosen (from NN_models.py)
+# model_num = 4
 
 graph = True
 
@@ -398,7 +388,7 @@ if __name__ == "__main__":
 		print(""), print("MAJOR ITERATION %s: " % (i+1)), print("")
 
 		#creating object to pass into pop descent
-		Parameters_object = create_Parameters_NN_object(pop_size, randomization, CV_selection, rr)
+		Parameters_object, model_num = create_Parameters_NN_object(pop_size, randomization, CV_selection, rr)
 
 		#creating lists to store data
 		loss_data, acc_data, total_test_loss, batch_test_loss, total_test_acc = [], [], [], [], []
@@ -416,7 +406,7 @@ if __name__ == "__main__":
 		# # using normalized loss data
 		# best_model = np.max(lfitnesses)
 		# lmean = statistics.mean(lfitnesses)
-		# loss_data.append(lmean)
+		# loss_data.append(lmean)-
 
 		# evaluate from outside
 		total_hist, batch_hist = [], []
@@ -448,14 +438,14 @@ if __name__ == "__main__":
 
 
 		# writing data to excel file
-		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, time_lapsed]]
+		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, time_lapsed, epochs, batches]]
 
-		with open('/Users/abhi/Documents/research_data/pd_data.csv', 'a', newline = '') as file:
+		with open('/Users/abhi/Documents/research_data/pd_data_model4.csv', 'a', newline = '') as file:
 			writer = csv.writer(file)
 			writer.writerows(data)
 
-		# if graph:
-		# 	graph_history(history, trial, parameter_string, loss_data_string, best_training_model_string, best_test_model_loss_string)
+		if graph:
+			graph_history(history)
 
 
 

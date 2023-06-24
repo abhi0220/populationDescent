@@ -46,12 +46,13 @@ def new_pd_NN_individual():
  #    tf.keras.layers.Dense(10)
 	# ])
 
-	# model #2: Keras Tutorial Model --> use for just overfitting rn
-	model = tf.keras.Sequential([
-	tf.keras.layers.Flatten(input_shape=(28, 28)),
-	tf.keras.layers.Dense(2, activation='tanh', kernel_regularizer=tf.keras.regularizers.l2(l=.0001)),
-	tf.keras.layers.Dense(10)
-	])
+	# # model #2: Keras Tutorial Model --> use for just overfitting rn
+	# model_num = 2
+	# model = tf.keras.Sequential([
+	# tf.keras.layers.Flatten(input_shape=(28, 28)),
+	# tf.keras.layers.Dense(2, activation='tanh', kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
+	# tf.keras.layers.Dense(10)
+	# ])
 
 
 	# # model #3: for trying to avoid overfitting, hyperparameter vs PD
@@ -91,23 +92,59 @@ def new_pd_NN_individual():
 	# model.add(layers.Dense(10, activation="softmax"))
 
 
-	optimizer = tf.keras.optimizers.Adam(learning_rate=1e-4) # 1e-3
+	# model #4 without regularization (for ESGD model comparison)
+	model_num = "4_no_reg"
+	FM_input_shape = (28, 28, 1)
+	model = tf.keras.Sequential([
+	tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
+	tf.keras.layers.Conv2D(filters=128, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu'),
+	tf.keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
+
+
+	tf.keras.layers.Flatten(),
+	tf.keras.layers.Dense(1024),
+	tf.keras.layers.Activation('relu'),
+	tf.keras.layers.Dropout(0.5),
+	tf.keras.layers.Dense(10, activation='softmax')
+	])
+
+
+	# # model #4 with regularization (for ESGD model comparison)
+	# model_num = 4
+	# FM_input_shape = (28, 28, 1)
+	# model = tf.keras.Sequential([
+	# tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
+	# tf.keras.layers.Conv2D(filters=128, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu'),
+	# tf.keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
+
+
+	# tf.keras.layers.Flatten(),
+	# tf.keras.layers.Dense(1024, kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
+	# tf.keras.layers.Activation('relu'),
+	# tf.keras.layers.Dropout(0.5),
+	# tf.keras.layers.Dense(10, activation='softmax')
+	# ])
+
+
+
+
+	optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3) # 1e-3
 	LR_constant = 10**(np.random.normal(-4, 2))
 	reg_constant = 10**(np.random.normal(0, 2))
-	print(LR_constant, reg_constant)
 
 	# creating NN object with initialized parameters
 	NN_object = NN_Individual(model, optimizer, LR_constant, reg_constant)
-	print(type(NN_object))
-	print(""), print(NN_object), print("")
 
-	return NN_object
+	return NN_object, model_num
 
 
 
 
 # Testing Hyperparameter search
 def new_hps_NN_individual():
+
+	# regularization_amount = [0.001]
+	# learning_rate = [1e-3]
 
 	# regularization_amount = [0.001, 0.1]
 	# learning_rate = [0.001, 0.1]
@@ -126,13 +163,13 @@ def new_hps_NN_individual():
 		for l in range(len(learning_rate)):
 
 
-			# model #2: Keras Tutorial Model --> use for just overfitting rn
-			model = tf.keras.Sequential([
-			tf.keras.layers.Flatten(input_shape=(28, 28)),
-			tf.keras.layers.Dense(2, activation='tanh', kernel_regularizer=tf.keras.regularizers.l2(l=regularization_amount[r])),
-			tf.keras.layers.Dense(10)
-			])
-			model_num = 2
+			# # model #2: Keras Tutorial Model --> use for just overfitting rn
+			# model_num = 2
+			# model = tf.keras.Sequential([
+			# tf.keras.layers.Flatten(input_shape=(28, 28)),
+			# tf.keras.layers.Dense(2, activation='tanh', kernel_regularizer=tf.keras.regularizers.l2(l=regularization_amount[r])),
+			# tf.keras.layers.Dense(10)
+			# ])
 
 			# # model #3: for trying to avoid overfitting, hyperparameter vs PD
 			# model = tf.keras.Sequential([
@@ -146,6 +183,21 @@ def new_hps_NN_individual():
 			# ])
 			# model_num = 3
 
+			# model #4 without regularization (for ESGD model comparison)
+			model_num = "4_no_reg; 25 models"
+			FM_input_shape = (28, 28, 1)
+			model = tf.keras.Sequential([
+			tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
+			tf.keras.layers.Conv2D(filters=128, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu'),
+			tf.keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
+
+
+			tf.keras.layers.Flatten(),
+			tf.keras.layers.Dense(1024),
+			tf.keras.layers.Activation('relu'),
+			tf.keras.layers.Dropout(0.5),
+			tf.keras.layers.Dense(10, activation='softmax')
+			])
 
 			optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate[l])
 			model.compile(optimizer=optimizer,
@@ -155,10 +207,7 @@ def new_hps_NN_individual():
 			population.append(model)
 			reg_list.append(regularization_amount[r])
 
-	# print(population)
-
 	population = np.array(population)
-	print(len(population))
 
 
 	return population, reg_list, model_num
