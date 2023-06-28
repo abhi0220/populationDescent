@@ -92,25 +92,8 @@ def new_pd_NN_individual():
 	# model.add(layers.Dense(10, activation="softmax"))
 
 
-	# model #4 without regularization (for ESGD model comparison)
-	model_num = "4_no_reg"
-	FM_input_shape = (28, 28, 1)
-	model = tf.keras.Sequential([
-	tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
-	tf.keras.layers.Conv2D(filters=128, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu'),
-	tf.keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
-
-
-	tf.keras.layers.Flatten(),
-	tf.keras.layers.Dense(1024),
-	tf.keras.layers.Activation('relu'),
-	tf.keras.layers.Dropout(0.5),
-	tf.keras.layers.Dense(10, activation='softmax')
-	])
-
-
-	# # model #4 with regularization (for ESGD model comparison)
-	# model_num = 4
+	# # model #4 without regularization (for ESGD model comparison)
+	# model_num = "4_no_reg"
 	# FM_input_shape = (28, 28, 1)
 	# model = tf.keras.Sequential([
 	# tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
@@ -119,11 +102,28 @@ def new_pd_NN_individual():
 
 
 	# tf.keras.layers.Flatten(),
-	# tf.keras.layers.Dense(1024, kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
+	# tf.keras.layers.Dense(1024),
 	# tf.keras.layers.Activation('relu'),
 	# tf.keras.layers.Dropout(0.5),
 	# tf.keras.layers.Dense(10, activation='softmax')
 	# ])
+
+
+	# model #4 with regularization (for ESGD model comparison)
+	model_num = 4
+	FM_input_shape = (28, 28, 1)
+	model = tf.keras.Sequential([
+	tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
+	tf.keras.layers.Conv2D(filters=128, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu'),
+	tf.keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
+
+
+	tf.keras.layers.Flatten(),
+	tf.keras.layers.Dense(1024, kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
+	tf.keras.layers.Activation('relu'),
+	tf.keras.layers.Dropout(0.5),
+	tf.keras.layers.Dense(10, activation='softmax')
+	])
 
 
 
@@ -146,11 +146,11 @@ def new_hps_NN_individual():
 	# regularization_amount = [0.001]
 	# learning_rate = [1e-3]
 
-	# regularization_amount = [0.001, 0.1]
-	# learning_rate = [0.001, 0.1]
+	regularization_amount = [0.001, 0.01, 0.1]
+	learning_rate = [0.001, 0.01, 0.1]
 
-	regularization_amount = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
-	learning_rate = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+	# regularization_amount = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+	# learning_rate = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
 
 	# regularization_amount = [0.01, 0.001, 0.0001, 0.00001, 0.000001, 5e-1, 5e-2, 5e-3, 5e-4, 5e-5]
 	# learning_rate = [0.01, 0.001, 0.0001, 0.00001, 0.000001, 5e-1, 5e-2, 5e-3, 5e-4, 5e-5]

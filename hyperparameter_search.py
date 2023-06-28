@@ -109,10 +109,10 @@ trial = 1
 
 
 # PARAMETERS
-iterations = 1000
+iterations = 100
 
 batch_size = 64
-batches = 21
+batches = 128
 epochs = 1
 
 gradient_steps = iterations * epochs * batches * (len(population))

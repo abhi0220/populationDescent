@@ -352,10 +352,13 @@ class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
 
 
 
-trial = 1
+trial = 5
 
 # PARAMETERS
-iterations = 1000
+SEED = [15, 34, 89, 97]
+# 11, 24
+
+iterations = 50
 
 pop_size = 5
 number_of_replaced_individuals = 2
@@ -365,27 +368,46 @@ rr = 1 # leash for exploration (how many iterations of gradient descent to run b
 
 # gradient descent parameters
 batch_size = 64
-batches = 21
+batches = 128
 epochs = 1
 
 grad_steps = iterations * epochs * batches * pop_size
 
 # randomization amount
-# 5 works well
 input_factor = 15
 
 # # NN model chosen (from NN_models.py)
 # model_num = 4
 
-graph = True
+graph = False
+
+import os
+# seed:
+def set_seeds(seed=SEED):
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    random.seed(seed)
+    tf.random.set_seed(seed)
+    np.random.seed(seed)
+
+def set_global_determinism(seed=SEED):
+    set_seeds(seed=seed)
+
+    os.environ['TF_DETERMINISTIC_OPS'] = '1'
+    os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
+    
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+    tf.config.threading.set_intra_op_parallelism_threads(1)
 
 ## MAIN RUNNING CODE
 if __name__ == "__main__":
 
 	# number of "trials"
-	for i in range(trial):
+	for i in range(len(SEED)):
 
 		print(""), print("MAJOR ITERATION %s: " % (i+1)), print("")
+
+		# set seed
+		set_global_determinism(seed=SEED[i])
 
 		#creating object to pass into pop descent
 		Parameters_object, model_num = create_Parameters_NN_object(pop_size, randomization, CV_selection, rr)
@@ -438,7 +460,7 @@ if __name__ == "__main__":
 
 
 		# writing data to excel file
-		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, time_lapsed, epochs, batches]]
+		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, time_lapsed, epochs, batches, SEED[i]]]
 
 		with open('/Users/abhi/Documents/research_data/pd_data_model4.csv', 'a', newline = '') as file:
 			writer = csv.writer(file)
