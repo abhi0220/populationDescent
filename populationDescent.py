@@ -4,10 +4,7 @@ import matplotlib.pyplot as plt
 import scipy
 import numpy as np
 from tqdm import tqdm
-from sklearn.cluster import KMeans
 import statistics
-import tensorflow as tf
-# from keras.callbacks import History
 
 # warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -60,10 +57,10 @@ def populationDescent(Parameters, number_of_replaced_individuals, iterations):
 				if i!=(iterations-1):
 					Parameters.population[0:number_of_replaced_individuals] = Parameters.randomizer(chosen_population, randomizer_strength)
 
-		# if i%(4)==0:
-		# 	# observing optimization progress
-		# 	if i!=(iterations-1):
-		# 		Parameters.observer(Parameters.population, Parameters.history)
+		if i%(4)==0:
+			# observing optimization progress
+			if i!=(iterations-1):
+				Parameters.observer(Parameters.population, Parameters.history)
 
 
 	# fine tune parameters

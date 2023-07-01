@@ -44,16 +44,16 @@ def NN_optimizer_manual_loss(NN_object, batches, batch_size, epochs):
 	optimizer = NN_object.opt_obj
 	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
-	indices = np.random.choice(59999, size = (batch_size*batches, ), replace=False)
+	indices = np.random.choice(49999, size = (batch_size*batches, ), replace=False)
 	vIndices = np.random.choice(4999, size = (batch_size*10, ), replace=False)
 
-	# FM dataset
-	random_batch_FM_train_images, random_batch_FM_train_labels = FM_train_images[indices], FM_train_labels[indices]
-	random_batch_FM_validation_images, random_batch_FM_validation_labels = FM_validation_images[vIndices], FM_validation_labels[vIndices]
+	# CIFAR10 dataset
+	random_batch_train_images, random_batch_train_labels = train_images[indices], train_labels[indices]
+	random_batch_validation_images, random_batch_validation_labels = validation_images[vIndices], validation_labels[vIndices]
 
-	model_loss = gradient_steps(lossfn, random_batch_FM_train_images, random_batch_FM_train_labels, batch_size, epochs, NN_object)
+	model_loss = gradient_steps(lossfn, random_batch_train_images, random_batch_train_labels, batch_size, epochs, NN_object)
 
-	validation_loss = lossfn(random_batch_FM_validation_labels, NN_object.nn(random_batch_FM_validation_images))
+	validation_loss = lossfn(random_batch_validation_labels, NN_object.nn(random_batch_validation_images))
 	tf.print("validation loss: %s" % validation_loss), print("")
 
 	normalized_training_loss.append(2/(2+(model_loss)))
@@ -73,7 +73,7 @@ def NN_optimizer_manual_loss(NN_object, batches, batch_size, epochs):
 def gradient_steps(lossfn, training_set, labels, batch_size, epochs, NN_object):
 
 	for e in range(epochs):
-		for x_batch, y_batch in tf.data.Dataset.from_tensor_slices((training_set, labels)).batch(batch_size):
+		for x_batch, y_batch in tf.data.Dataset.from_tensor_slices((training_set, labels)).batch(batch_size): # need this for tf.GradientTape to work like model.fit
 			with tf.GradientTape() as tape:
 
 				# make a prediction using the model and then calculate the loss
@@ -90,7 +90,8 @@ def gradient_steps(lossfn, training_set, labels, batch_size, epochs, NN_object):
 				total_training_loss = NN_object.LR_constant * (model_loss + mreg_loss) # LR + REG randomization
 
 			# calculate the gradients using our tape and then update the model weights
-			grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization and regularization loss
+			grads = tape.gradient(model_loss, NN_object.nn.trainable_variables)
+			# grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization and regularization loss
 
 			NN_object.opt_obj.apply_gradients(zip(grads, NN_object.nn.trainable_variables))
 	tf.print("training loss: %s" % model_loss) ## remove this --> put nothing (put at recombination)
@@ -143,10 +144,10 @@ def NN_randomizer_manual_loss(NN_object, normalized_amount, input_factor):
 
 # unnormalized
 def observer(NN_object, tIndices):
-	random_batch_FM_validation_images, random_batch_FM_validation_labels = FM_validation_images[tIndices], FM_validation_labels[tIndices]
+	random_batch_validation_images, random_batch_validation_labels = validation_images[tIndices], validation_labels[tIndices]
 
 	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-	test_loss = lossfn(random_batch_FM_validation_labels, NN_object.nn(random_batch_FM_validation_images))
+	test_loss = lossfn(random_batch_validation_labels, NN_object.nn(random_batch_validation_images))
 	print(test_loss)
 	# ntest_loss = 1/(1+test_loss)
 
@@ -187,14 +188,16 @@ def evaluator(NN_object):
 
 	np.random.seed(0)
 	eIndices = np.random.choice(4999, size = (batch_size*25, ), replace=False)
-	random_batch_FM_train_images, random_batch_FM_train_labels, random_batch_FM_test_images, random_batch_FM_test_labels = FM_train_images[eIndices], FM_train_labels[eIndices], FM_test_images[eIndices], FM_test_labels[eIndices]
+	random_batch_train_images, random_batch_train_labels, random_batch_test_images, random_batch_test_labels = train_images[eIndices], train_labels[eIndices], test_images[eIndices], test_labels[eIndices]
 	
 	print(""), print(""), print("Evaluating models on test data after randomization")
 
 	# evaluating on train, test images
 	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-	train_loss = lossfn(random_batch_FM_train_labels, NN_object.nn(random_batch_FM_train_images))
-	test_loss = lossfn(random_batch_FM_test_labels, NN_object.nn(random_batch_FM_test_images))
+	train_loss = lossfn(random_batch_train_labels, NN_object.nn(random_batch_train_images))
+	test_loss = lossfn(random_batch_test_labels, NN_object.nn(random_batch_test_images))
+
+	# NN_object.nn.evaluate()
 
 	ntest_loss = 2/(2+test_loss)
 	print("unnormalized train loss: %s" % train_loss)
@@ -306,7 +309,7 @@ def individual_to_params(
 		for j in range(5):
 			for i in range(len(population)):
 				print(""), print("Fine-Tuning models"), print("model #%s" % (i+1)), print("")
-				normalized_training_loss, normalized_validation_loss = individual_optimizer(NN_Individual(*population[i]), 21, 1)
+				normalized_training_loss, normalized_validation_loss = individual_optimizer(NN_Individual(*population[i]), 64, 64, 1)
 
 		return
 
@@ -323,31 +326,25 @@ def create_Parameters_NN_object(pop_size, randomization, CV_selection, rr):
 
 	return object, model_num
 
+# CIFAR10 dataset
+(train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.cifar10.load_data()
 
-# Fashion-MNIST dataset
-fashion_mnist = tf.keras.datasets.fashion_mnist
-(FM_train_images, FM_train_labels), (FM_test_images, FM_test_labels) = fashion_mnist.load_data()
-
-sample_shape = FM_train_images[0].shape
-print(sample_shape)
+sample_shape = train_images[0].shape
 img_width, img_height = sample_shape[0], sample_shape[1]
-FM_input_shape = (img_width, img_height, 1)
+input_shape = (img_width, img_height, 1)
+print(input_shape)
 
-# Reshape data 
-FM_train_images = FM_train_images.reshape(len(FM_train_images), FM_input_shape[0], FM_input_shape[1], FM_input_shape[2])
-FM_test_images  = FM_test_images.reshape(len(FM_test_images), FM_input_shape[0], FM_input_shape[1], FM_input_shape[2])
+# # Reshape data 
+# train_images = train_images.reshape(len(train_images), input_shape[0], input_shape[1], input_shape[2])
+# test_images  = test_images.reshape(len(test_images), input_shape[0], input_shape[1], input_shape[2])
 
 # normalizing data
-FM_train_images, FM_test_images = FM_train_images / 255.0, FM_test_images / 255.0
+train_images, test_images = train_images / 255.0, test_images / 255.0
 
-# FM_validation_images, FM_validation_labels = FM_train_images[50000:59999], FM_train_labels[50000:59999]
-# FM_train_images, FM_train_labels = FM_train_images[0:50000], FM_train_labels[0:50000]
+validation_images, validation_labels = test_images[0:5000], test_labels[0:5000]
+test_images, test_labels = test_images[5000:], test_labels[5000:]
 
-FM_validation_images, FM_validation_labels = FM_test_images[0:5000], FM_test_labels[0:5000]
-FM_test_images, FM_test_labels = FM_test_images[5000:], FM_test_labels[5000:]
 
-class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
-               'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
 
 
 
@@ -355,20 +352,20 @@ class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
 trial = 5
 
 # PARAMETERS
-SEED = [5, 15, 24, 34, 97]
+SEED = [5]
 # 11, 24
 
-iterations = 50
+iterations = 100
 
-pop_size = 5
+pop_size = 1
 number_of_replaced_individuals = 2
-randomization = True
+randomization = False
 CV_selection = True
 rr = 1 # leash for exploration (how many iterations of gradient descent to run before randomization)
 
 # gradient descent parameters
-batch_size = 64
-batches = 128
+batch_size = 32
+batches = 1562
 epochs = 1
 
 grad_steps = iterations * epochs * batches * pop_size
@@ -379,7 +376,7 @@ input_factor = 15
 # # NN model chosen (from NN_models.py)
 # model_num = 4
 
-graph = False
+graph = True
 
 import os
 # seed:
@@ -462,9 +459,9 @@ if __name__ == "__main__":
 		# writing data to excel file
 		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, time_lapsed, epochs, batches, SEED[i]]]
 
-		with open('/Users/abhi/Documents/research_data/pd_data_model4.csv', 'a', newline = '') as file:
-			writer = csv.writer(file)
-			writer.writerows(data)
+		# with open('/Users/abhi/Documents/research_data/pd_data_model4.csv', 'a', newline = '') as file:
+		# 	writer = csv.writer(file)
+		# 	writer.writerows(data)
 
 		if graph:
 			graph_history(history)

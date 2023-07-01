@@ -61,38 +61,28 @@ for h in range(len(SEED)):
 	population, reg_list, model_num = new_hps_NN_individual()
 
 
-	# Fashion-MNIST dataset
-	fashion_mnist = tf.keras.datasets.fashion_mnist
-	(FM_train_images, FM_train_labels), (FM_test_images, FM_test_labels) = fashion_mnist.load_data()
+	# CIFAR10 dataset
+	(train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.cifar10.load_data()
 
-	sample_shape = FM_train_images[0].shape
-	img_width, img_height = sample_shape[0], sample_shape[1]
-	FM_input_shape = (img_width, img_height, 1)
-
-	# Reshape data 
-	FM_train_images = FM_train_images.reshape(len(FM_train_images), FM_input_shape[0], FM_input_shape[1], FM_input_shape[2])
-	FM_test_images  = FM_test_images.reshape(len(FM_test_images), FM_input_shape[0], FM_input_shape[1], FM_input_shape[2])
+	# sample_shape = train_images[0].shape
+	# img_width, img_height = sample_shape[0], sample_shape[1]
+	# input_shape = (img_width, img_height, 1)
+	# print(input_shape)
 
 	# normalizing data
-	FM_train_images, FM_test_images = FM_train_images / 255.0, FM_test_images / 255.0
+	train_images, test_images = train_images / 255.0, test_images / 255.0
 
-	# FM_validation_images, FM_validation_labels = FM_train_images[50000:59999], FM_train_labels[50000:59999]
-	# FM_train_images, FM_train_labels = FM_train_images[0:50000], FM_train_labels[0:50000]
-
-	FM_validation_images, FM_validation_labels = FM_test_images[0:5000], FM_test_labels[0:5000]
-	FM_test_images, FM_test_labels = FM_test_images[5000:], FM_test_labels[5000:]
-
-	class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
-	               'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
+	validation_images, validation_labels = test_images[0:5000], test_labels[0:5000]
+	test_images, test_labels = test_images[5000:], test_labels[5000:]
 
 
 	# observing optimization progress
 	# unnormalized
 	def observer(NN_object, tIndices):
-		random_batch_FM_test_images, random_batch_FM_test_labels = FM_test_images[tIndices], FM_test_labels[tIndices]
+		random_batch_test_images, random_batch_test_labels = test_images[tIndices], test_labels[tIndices]
 
 		lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-		test_loss = lossfn(random_batch_FM_test_labels, NN_object(random_batch_FM_test_images))
+		test_loss = lossfn(random_batch_test_labels, NN_object(random_batch_test_images))
 
 		ntest_loss = 1/(1+test_loss)
 
@@ -134,8 +124,8 @@ for h in range(len(SEED)):
 	# PARAMETERS
 	iterations = 100
 
-	batch_size = 64
-	batches = 128
+	batch_size = 32
+	batches = 1562
 	epochs = 1
 
 	gradient_steps = iterations * epochs * batches * (len(population))
@@ -150,11 +140,11 @@ for h in range(len(SEED)):
 	# TRAINING
 	for i in tqdm(range(iterations)):
 
-		indices = np.random.choice(59999, size = (batch_size*batches, ), replace=False)
+		indices = np.random.choice(49999, size = (batch_size*batches, ), replace=False)
 		vIndices = np.random.choice(4999, size = (batch_size*10, ), replace=False)
 
-		random_batch_FM_train_images, random_batch_FM_train_labels = FM_train_images[indices], FM_train_labels[indices]
-		random_batch_FM_validation_images, random_batch_FM_validation_labels = FM_validation_images[vIndices], FM_validation_labels[vIndices]
+		random_batch_train_images, random_batch_train_labels = train_images[indices], train_labels[indices]
+		random_batch_validation_images, random_batch_validation_labels = validation_images[vIndices], validation_labels[vIndices]
 
 		# indices
 		tIndices = np.random.choice(4999, size = (batch_size*10, ), replace=False)
@@ -163,7 +153,7 @@ for h in range(len(SEED)):
 		for j in range(len(population)):
 
 			print("model %s" % (j+1))
-			population[j].fit(random_batch_FM_train_images, random_batch_FM_train_labels, validation_data = (random_batch_FM_validation_images, random_batch_FM_validation_labels), epochs=epochs, verbose=1, batch_size=batch_size)
+			population[j].fit(random_batch_train_images, random_batch_train_labels, validation_data = (random_batch_validation_images, random_batch_validation_labels), epochs=epochs, verbose=1, batch_size=batch_size)
 
 			print("regularization_amount: %s" % reg_list[j])
 			print("learning rate: %s" % population[j].optimizer.learning_rate)
@@ -199,15 +189,15 @@ for h in range(len(SEED)):
 	# # Evaluating on test data
 	np.random.seed(0)
 	eIndices = np.random.choice(4999, size = (batch_size*25, ), replace=False)
-	random_batch_FM_train_images, random_batch_FM_train_labels, random_batch_FM_test_images, random_batch_FM_test_labels = FM_train_images[eIndices], FM_train_labels[eIndices], FM_test_images[eIndices], FM_test_labels[eIndices]
+	random_batch_train_images, random_batch_train_labels, random_batch_test_images, random_batch_test_labels = train_images[eIndices], train_labels[eIndices], test_images[eIndices], test_labels[eIndices]
 
 	training_losses, evaluation_losses, evaluation_accuracies = [], [], []
 
 	for h in range(len(population)):
 		print("model %s" % (h+1))
 
-		training_loss, training_accuracy = population[h].evaluate(random_batch_FM_train_images, random_batch_FM_train_labels, batch_size = batch_size)
-		test_loss, test_acc = population[h].evaluate(random_batch_FM_test_images, random_batch_FM_test_labels, batch_size = batch_size)
+		training_loss, training_accuracy = population[h].evaluate(random_batch_train_images, random_batch_train_labels, batch_size = batch_size)
+		test_loss, test_acc = population[h].evaluate(random_batch_test_images, random_batch_test_labels, batch_size = batch_size)
 
 		ntest_loss = 1/(1+test_loss)
 		ntest_loss = np.array(ntest_loss)

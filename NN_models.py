@@ -92,7 +92,7 @@ def new_pd_NN_individual():
 	# model.add(layers.Dense(10, activation="softmax"))
 
 
-	# # model #4 without regularization (for ESGD model comparison)
+	# # model #4 for FMNIST without regularization (for ESGD model comparison)
 	# model_num = "4_no_reg"
 	# FM_input_shape = (28, 28, 1)
 	# model = tf.keras.Sequential([
@@ -108,27 +108,44 @@ def new_pd_NN_individual():
 	# tf.keras.layers.Dense(10, activation='softmax')
 	# ])
 
-
-	# model #4 with regularization (for ESGD model comparison)
-	model_num = 4
-	FM_input_shape = (28, 28, 1)
+	# model #5 for CIFAR10
+	# CIFAR10_input_shape = 
+	model_num = "5 CIFAR"
 	model = tf.keras.Sequential([
-	tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
-	tf.keras.layers.Conv2D(filters=128, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu'),
-	tf.keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
-
+	tf.keras.layers.Conv2D(filters=32, kernel_size=(5,5), activation='relu', input_shape=(32, 32, 3)),
+	tf.keras.layers.MaxPooling2D((2,2)),
+	tf.keras.layers.Conv2D(filters=64, kernel_size=(5,5), activation='relu'),
+	tf.keras.layers.MaxPooling2D((2,2)),
+	tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu'),
 
 	tf.keras.layers.Flatten(),
-	tf.keras.layers.Dense(1024, kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
-	tf.keras.layers.Activation('relu'),
-	tf.keras.layers.Dropout(0.5),
+	tf.keras.layers.Dense(64, activation='relu'),
 	tf.keras.layers.Dense(10, activation='softmax')
 	])
 
 
 
+	# # model #4 with regularization (for ESGD model comparison)
+	# model_num = 4
+	# FM_input_shape = (28, 28, 1)
+	# model = tf.keras.Sequential([
+	# tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
+	# tf.keras.layers.Conv2D(filters=128, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu'),
+	# tf.keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
 
-	optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3) # 1e-3
+
+	# tf.keras.layers.Flatten(),
+	# tf.keras.layers.Dense(1024, kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
+	# tf.keras.layers.Activation('relu'),
+	# tf.keras.layers.Dropout(0.5),
+	# tf.keras.layers.Dense(10, activation='softmax')
+	# ])
+
+
+
+
+	optimizer = tf.keras.optimizers.Adam() # 1e-3
+	# optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3) # 1e-3
 	LR_constant = 10**(np.random.normal(-4, 2))
 	reg_constant = 10**(np.random.normal(0, 2))
 
@@ -143,13 +160,14 @@ def new_pd_NN_individual():
 # Testing Hyperparameter search
 def new_hps_NN_individual():
 
-	# regularization_amount = [0.001]
-	# learning_rate = [1e-3]
+	regularization_amount = [0.001]
+	learning_rate = [1e-3]
 
-	regularization_amount = [0.001, 0.01, 0.1]
-	learning_rate = [0.001, 0.01, 0.1]
+	# regularization_amount = [0.001, 0.01, 0.1]
+	# learning_rate = [0.001, 0.01, 0.1]
 
 	# regularization_amount = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+	# # regularization_amount = [0.1]
 	# learning_rate = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
 
 	# regularization_amount = [0.01, 0.001, 0.0001, 0.00001, 0.000001, 5e-1, 5e-2, 5e-3, 5e-4, 5e-5]
@@ -183,19 +201,51 @@ def new_hps_NN_individual():
 			# ])
 			# model_num = 3
 
-			# model #4 without regularization (for ESGD model comparison)
-			model_num = "4_no_reg; 25 models"
-			FM_input_shape = (28, 28, 1)
-			model = tf.keras.Sequential([
-			tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
-			tf.keras.layers.Conv2D(filters=128, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu'),
-			tf.keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
+			# # model #4 without regularization (for ESGD model comparison)
+			# model_num = "4_no_reg; 25 models"
+			# FM_input_shape = (28, 28, 1)
+			# model = tf.keras.Sequential([
+			# tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
+			# tf.keras.layers.Conv2D(filters=128, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu'),
+			# tf.keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
 
+
+			# tf.keras.layers.Flatten(),
+			# tf.keras.layers.Dense(1024),
+			# tf.keras.layers.Activation('relu'),
+			# tf.keras.layers.Dropout(0.5),
+			# tf.keras.layers.Dense(10, activation='softmax')
+			# ])
+
+			# # model #4 with regularization (for ESGD model comparison)
+			# model_num = "4; 25 models"
+			# FM_input_shape = (28, 28, 1)
+			# model = tf.keras.Sequential([
+			# tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
+			# tf.keras.layers.Conv2D(filters=128, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu'),
+			# tf.keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
+
+
+			# tf.keras.layers.Flatten(),
+			# tf.keras.layers.Dense(1024, kernel_regularizer=tf.keras.regularizers.l2(l=regularization_amount[r])),
+			# tf.keras.layers.Activation('relu'),
+			# tf.keras.layers.Dropout(0.5),
+			# tf.keras.layers.Dense(10, activation='softmax')
+			# ])
+
+
+			# model #5 for CIFAR10
+			# CIFAR10_input_shape = 
+			model_num = "5 CIFAR"
+			model = tf.keras.Sequential([
+			tf.keras.layers.Conv2D(filters=32, kernel_size=(5,5), activation='relu', input_shape=(32, 32, 3)),
+			tf.keras.layers.MaxPooling2D((2,2)),
+			tf.keras.layers.Conv2D(filters=64, kernel_size=(5,5), activation='relu'),
+			tf.keras.layers.MaxPooling2D((2,2)),
+			tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu'),
 
 			tf.keras.layers.Flatten(),
-			tf.keras.layers.Dense(1024),
-			tf.keras.layers.Activation('relu'),
-			tf.keras.layers.Dropout(0.5),
+			tf.keras.layers.Dense(64, activation='relu'),
 			tf.keras.layers.Dense(10, activation='softmax')
 			])
 
