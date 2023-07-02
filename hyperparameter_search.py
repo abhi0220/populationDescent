@@ -34,7 +34,8 @@ import csv
 from NN_models import new_hps_NN_individual
 
 # setting seed
-SEED = [5, 15, 24, 34, 97]
+# SEED = [5, 15, 24, 34, 97]
+SEED = [49, 60, 74, 89, 100]
 
 import os
 def set_seeds(seed=SEED):
