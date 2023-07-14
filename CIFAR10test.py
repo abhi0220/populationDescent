@@ -5,6 +5,7 @@
 # pip3.9 install -r requirements_m1.txt
 
 import csv
+import os
 
 import random
 import matplotlib.pyplot as plt
@@ -25,6 +26,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras import datasets, layers, models
 import tensorflow as tf
 
+
 from populationDescent import populationDescent
 from NN_models import new_pd_NN_individual, new_hps_NN_individual
 
@@ -40,7 +42,6 @@ def NN_optimizer_manual_loss(NN_object, batches, batch_size, epochs):
 	epochs = epochs
 	normalized_training_loss, normalized_validation_loss = [], []
 
-	print(""), print(NN_object), print("")
 	optimizer = NN_object.opt_obj
 	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
@@ -62,8 +63,8 @@ def NN_optimizer_manual_loss(NN_object, batches, batch_size, epochs):
 	normalized_validation_loss.append(2/(2+(validation_loss)))
 	normalized_validation_loss = np.array(normalized_validation_loss)
 
-	print(""), print("normalized training loss: %s" % normalized_training_loss)
-	print("normalized validation loss: %s" % normalized_validation_loss)
+	# print(""), print("normalized training loss: %s" % normalized_training_loss)
+	# print("normalized validation loss: %s" % normalized_validation_loss)
 
 	#print(model_loss)
 	return normalized_training_loss, normalized_validation_loss
@@ -95,7 +96,6 @@ def gradient_steps(lossfn, training_set, labels, batch_size, epochs, NN_object):
 
 			NN_object.opt_obj.apply_gradients(zip(grads, NN_object.nn.trainable_variables))
 	tf.print("training loss: %s" % model_loss) ## remove this --> put nothing (put at recombination)
-	print("")
 	return model_loss
 
 
@@ -118,8 +118,8 @@ def NN_randomizer_manual_loss(NN_object, normalized_amount, input_factor):
 
 	# randomizing regularization rate
 	mu, sigma = 0, (normalized_amount*factor) # 0.7, 1 #10 # 0.3
-	print(mu, sigma)
-	print("")
+	# print(mu, sigma)
+	# print("")
 	randomization = 2**(np.random.normal(mu, sigma))
 	new_reg_constant = (NN_object.reg_constant) * randomization
 
@@ -148,7 +148,7 @@ def observer(NN_object, tIndices):
 
 	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 	test_loss = lossfn(random_batch_validation_labels, NN_object.nn(random_batch_validation_images))
-	print(test_loss)
+	# print(test_loss)
 	# ntest_loss = 1/(1+test_loss)
 
 	return test_loss
@@ -157,8 +157,6 @@ def graph_history(history):
 	integers = [i for i in range(1, (len(history))+1)]
 	x = [j * rr for j in integers]
 	y = history
-	print("slkdjf;sakdjf;aslkdj")
-	print('history')
 	plt.scatter(x, history, s=20)
 	# plt.rcParams.update({'font.size': 10})
 	# figure(figsize=(3, 2), dpi=80)
@@ -275,7 +273,7 @@ def individual_to_params(
 	def Parameter_class_optimizer(population: np.array(Individual)) -> np.array(Individual):
 		lFitnesses, vFitnesses = [], []
 		for i in range(len(population)):
-			print(""), print("model #%s" % (i+1)), print("")
+			print(""), print("model #%s" % (i+1))
 			normalized_training_loss, normalized_validation_loss = individual_optimizer(NN_Individual(*population[i]), batches, batch_size, epochs)
 			lFitnesses.append(normalized_training_loss)
 			vFitnesses.append(normalized_validation_loss)
@@ -332,7 +330,7 @@ def create_Parameters_NN_object(pop_size, randomization, CV_selection, rr):
 sample_shape = train_images[0].shape
 img_width, img_height = sample_shape[0], sample_shape[1]
 input_shape = (img_width, img_height, 1)
-print(input_shape)
+# print(input_shape)
 
 # # Reshape data 
 # train_images = train_images.reshape(len(train_images), input_shape[0], input_shape[1], input_shape[2])
@@ -355,17 +353,17 @@ trial = 5
 SEED = [5]
 # 11, 24
 
-iterations = 100
+iterations = 25
 
-pop_size = 1
+pop_size = 5
 number_of_replaced_individuals = 2
-randomization = False
+randomization = True
 CV_selection = True
 rr = 1 # leash for exploration (how many iterations of gradient descent to run before randomization)
 
 # gradient descent parameters
-batch_size = 32
-batches = 1562
+batch_size = 64
+batches = 128
 epochs = 1
 
 grad_steps = iterations * epochs * batches * pop_size
@@ -378,7 +376,6 @@ input_factor = 15
 
 graph = True
 
-import os
 # seed:
 def set_seeds(seed=SEED):
     os.environ['PYTHONHASHSEED'] = str(seed)

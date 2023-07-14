@@ -156,7 +156,7 @@ def graph_history(history):
 	integers = [i for i in range(1, (len(history))+1)]
 	x = [j * rr for j in integers]
 	y = history
-	print("slkdjf;sakdjf;aslkdj")
+	
 	print('history')
 	plt.scatter(x, history, s=20)
 	# plt.rcParams.update({'font.size': 10})
@@ -306,7 +306,7 @@ def individual_to_params(
 		for j in range(5):
 			for i in range(len(population)):
 				print(""), print("Fine-Tuning models"), print("model #%s" % (i+1)), print("")
-				normalized_training_loss, normalized_validation_loss = individual_optimizer(NN_Individual(*population[i]), 21, 1)
+				normalized_training_loss, normalized_validation_loss = individual_optimizer(NN_Individual(*population[i]), 64, 128, 1)
 
 		return
 
@@ -340,14 +340,10 @@ FM_test_images  = FM_test_images.reshape(len(FM_test_images), FM_input_shape[0],
 # normalizing data
 FM_train_images, FM_test_images = FM_train_images / 255.0, FM_test_images / 255.0
 
-# FM_validation_images, FM_validation_labels = FM_train_images[50000:59999], FM_train_labels[50000:59999]
-# FM_train_images, FM_train_labels = FM_train_images[0:50000], FM_train_labels[0:50000]
-
+# splitting data into validation/test set
 FM_validation_images, FM_validation_labels = FM_test_images[0:5000], FM_test_labels[0:5000]
 FM_test_images, FM_test_labels = FM_test_images[5000:], FM_test_labels[5000:]
 
-class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
-               'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
 
 
 
@@ -355,20 +351,22 @@ class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
 trial = 5
 
 # PARAMETERS
-SEED = [5, 15, 24, 34, 97]
+SEED = [3]
+# SEED = [5, 15, 24, 34, 97]
+# SEED = [49, 60, 74, 89, 100]
 # 11, 24
 
-iterations = 50
+iterations = 11
 
-pop_size = 5
+pop_size = 1
 number_of_replaced_individuals = 2
-randomization = True
+randomization = False
 CV_selection = True
 rr = 1 # leash for exploration (how many iterations of gradient descent to run before randomization)
 
 # gradient descent parameters
 batch_size = 64
-batches = 128
+batches = 256
 epochs = 1
 
 grad_steps = iterations * epochs * batches * pop_size
@@ -379,7 +377,7 @@ input_factor = 15
 # # NN model chosen (from NN_models.py)
 # model_num = 4
 
-graph = False
+graph = True
 
 import os
 # seed:
@@ -460,7 +458,7 @@ if __name__ == "__main__":
 
 
 		# writing data to excel file
-		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, time_lapsed, epochs, batches, SEED[i]]]
+		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, time_lapsed, epochs, batches, batch_size, SEED[i]]]
 
 		with open('/Users/abhi/Documents/research_data/pd_data_model4.csv', 'a', newline = '') as file:
 			writer = csv.writer(file)

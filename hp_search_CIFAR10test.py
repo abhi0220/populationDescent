@@ -1,8 +1,6 @@
 # use Python 3.9
 # python3.9 -m venv env
 # source new3.9/bin/activate
-# pip3.9 install -r requirements.txt
-# python3.9 -m pd_classes_parameters
 
 import random
 import math
