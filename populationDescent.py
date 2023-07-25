@@ -18,13 +18,9 @@ def populationDescent(Parameters, number_of_replaced_individuals, iterations):
 	# pop_size: int (number of individuals)
 	# fine_tuner: (individual -> scalar) -> (individual -> individual)
 
-	# # track and return best individual
-	# best = []
-
-#artificial_selection
 	for i in tqdm(range(iterations), desc = "Iterations"):
 
-		#calling OPTIMIZER
+		# calling OPTIMIZER
 		lFitnesses, vFitnesses = Parameters.optimizer(Parameters.population)
 
 		if i%(Parameters.rr)==0:
@@ -52,15 +48,13 @@ def populationDescent(Parameters, number_of_replaced_individuals, iterations):
 				chosen_population = Parameters.population[chosen_indices]
 				randomizer_strength = 1 - (vFitnesses[chosen_indices])
 
-			#calling WEIGHTED RANDOMIZER
-			if (Parameters.randomization)==True:
-				if i!=(iterations-1):
-					Parameters.population[0:number_of_replaced_individuals] = Parameters.randomizer(chosen_population, randomizer_strength)
+			# calling WEIGHTED RANDOMIZER
+			if (Parameters.randomization)==True and i!=(iterations-1):
+				Parameters.population[0:number_of_replaced_individuals] = Parameters.randomizer(chosen_population, randomizer_strength)
 
-		if i%(4)==0:
-			# observing optimization progress
-			if i!=(iterations-1):
-				Parameters.observer(Parameters.population, Parameters.history)
+		# observing optimization progress
+		if i%(4)==0 and :i!=(iterations-1)
+			Parameters.observer(Parameters.population, Parameters.history)
 
 
 	# fine tune parameters

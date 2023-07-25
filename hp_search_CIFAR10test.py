@@ -120,7 +120,7 @@ for h in range(len(SEED)):
 
 
 	# PARAMETERS
-	iterations = 100
+	iterations = 5
 
 	batch_size = 32
 	batches = 1562
@@ -202,7 +202,7 @@ for h in range(len(SEED)):
 
 		training_losses.append(training_loss)
 
-		evaluation_losses.append(ntest_loss)
+		evaluation_losses.append(test_loss)
 		evaluation_accuracies.append(test_acc)
 
 
@@ -215,7 +215,7 @@ for h in range(len(SEED)):
 	best_reg_amount = reg_list[best_index]
 
 	evaluation_losses = np.array(evaluation_losses)
-	print(evaluation_losses)
+
 	test_loss_data = statistics.mean(evaluation_losses)
 	test_acc_data = statistics.mean(evaluation_accuracies)
 

@@ -129,26 +129,52 @@ def new_pd_NN_individual():
 
 
 
-	# model #5 for CIFAR10
-	model_num = "5 CIFAR"
-	cifar_input_shape = (32, 32, 3)
+	# # model #5 for CIFAR10
+	# model_num = "5 CIFAR"
+	# cifar_input_shape = (32, 32, 3)
 	
+	# model = tf.keras.Sequential([
+	# tf.keras.layers.Conv2D(filters=32, kernel_size=(5,5), activation='relu', input_shape=cifar_input_shape),
+	# tf.keras.layers.MaxPooling2D((2,2)),
+	# tf.keras.layers.Dropout(0.2),
+	# tf.keras.layers.Conv2D(filters=64, kernel_size=(5,5), activation='relu'),
+	# tf.keras.layers.MaxPooling2D((2,2)),
+	# tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu'),
+	# tf.keras.layers.Dropout(0.5),
+
+	# tf.keras.layers.Flatten(),
+	# tf.keras.layers.Dense(1024, activation='relu'),
+	# tf.keras.layers.Dense(10, activation='softmax')
+	# ])
+
+
+	# model #6 - better, bigger CIFAR10 model
+	model_num = "6 CIFAR"
 	model = tf.keras.Sequential([
-	tf.keras.layers.Conv2D(filters=32, kernel_size=(5,5), activation='relu', input_shape=cifar_input_shape),
-	tf.keras.layers.MaxPooling2D((2,2)),
-	tf.keras.layers.Dropout(0.2),
-	tf.keras.layers.Conv2D(filters=64, kernel_size=(5,5), activation='relu'),
-	tf.keras.layers.MaxPooling2D((2,2)),
-	tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu'),
-	tf.keras.layers.Dropout(0.5),
+    tf.keras.layers.Conv2D(32,  kernel_size = 3,kernel_initializer='he_normal', activation='relu', input_shape = (32, 32, 3)),
+    tf.keras.layers.BatchNormalization(),
+    
+    tf.keras.layers.Dropout(0.2),
+    
+    tf.keras.layers.Conv2D(64, kernel_size = 3, kernel_initializer='he_normal', strides=1, activation='relu'),
+    tf.keras.layers.BatchNormalization(),
+    
+    tf.keras.layers.MaxPooling2D((2, 2)),
+    tf.keras.layers.Conv2D(128, kernel_size = 3, strides=1, kernel_initializer='he_normal' ,padding='same', activation='relu'),
+    tf.keras.layers.BatchNormalization(),
+    
+    tf.keras.layers.MaxPooling2D((2, 2)),
+    tf.keras.layers.Conv2D(64, kernel_size = 3,kernel_initializer='he_normal', activation='relu'),
+    tf.keras.layers.BatchNormalization(),
+    
+    tf.keras.layers.MaxPooling2D((4, 4)),
+    tf.keras.layers.Dropout(0.2),
 
-	tf.keras.layers.Flatten(),
-	tf.keras.layers.Dense(1024, activation='relu'),
-	tf.keras.layers.Dense(10, activation='softmax')
-	])
-
-
-
+    tf.keras.layers.Flatten(),
+    tf.keras.layers.Dense(256,kernel_initializer='he_normal', activation = "relu"),
+    tf.keras.layers.Dropout(0.1),
+    tf.keras.layers.Dense(10, kernel_initializer='glorot_uniform', activation = "softmax")
+    ])
 
 
 
@@ -168,14 +194,14 @@ def new_pd_NN_individual():
 # Testing Hyperparameter search
 def new_hps_NN_individual():
 
-	regularization_amount = [0.001]
+	# regularization_amount = [0.001]
 	learning_rate = [1e-3]
 
 	# regularization_amount = [0.001, 0.01, 0.1]
 	# learning_rate = [0.001, 0.01, 0.1]
 
 	# regularization_amount = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
-	# # regularization_amount = [0.1]
+	regularization_amount = [0.1]
 	# learning_rate = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
 
 	# regularization_amount = [0.01, 0.001, 0.0001, 0.00001, 0.000001, 5e-1, 5e-2, 5e-3, 5e-4, 5e-5]
@@ -243,22 +269,55 @@ def new_hps_NN_individual():
 			# ])
 
 
-			# model #5 for CIFAR10
-			# CIFAR10_input_shape = 
-			model_num = "5 CIFAR"
-			model = tf.keras.Sequential([
-			tf.keras.layers.Conv2D(filters=32, kernel_size=(5,5), activation='relu', input_shape=(32, 32, 3)),
-			tf.keras.layers.MaxPooling2D((2,2)),
-			tf.keras.layers.Conv2D(filters=64, kernel_size=(5,5), activation='relu'),
-			tf.keras.layers.MaxPooling2D((2,2)),
-			tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu'),
+			# # model #5 for CIFAR10
+			# model_num = "5 CIFAR"
+			# cifar_input_shape = (32, 32, 3)
+			
+			# model = tf.keras.Sequential([
+			# tf.keras.layers.Conv2D(filters=32, kernel_size=(5,5), activation='relu', input_shape=cifar_input_shape),
+			# tf.keras.layers.MaxPooling2D((2,2)),
+			# tf.keras.layers.Dropout(0.2),
+			# tf.keras.layers.Conv2D(filters=64, kernel_size=(5,5), activation='relu'),
+			# tf.keras.layers.MaxPooling2D((2,2)),
+			# tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu'),
+			# tf.keras.layers.Dropout(0.5),
 
-			tf.keras.layers.Flatten(),
-			tf.keras.layers.Dense(64, activation='relu'),
-			tf.keras.layers.Dense(10, activation='softmax')
-			])
+			# tf.keras.layers.Fl1atten(),
+			# tf.keras.layers.Dense(1024, activation='relu'),
+			# tf.keras.layers.Dense(10, activation='softmax')
+			# ])
+
+
+			# model #6 - better, bigger CIFAR10 model
+			model_num = "6 CIFAR"
+			model = tf.keras.Sequential([
+		    tf.keras.layers.Conv2D(32,  kernel_size = 3,kernel_initializer='he_normal', activation='relu', input_shape = (32, 32, 3)),
+		    tf.keras.layers.BatchNormalization(),
+		    
+		    tf.keras.layers.Dropout(0.2),
+		    
+		    tf.keras.layers.Conv2D(64, kernel_size = 3, kernel_initializer='he_normal', strides=1, activation='relu'),
+		    tf.keras.layers.BatchNormalization(),
+		    
+		    tf.keras.layers.MaxPooling2D((2, 2)),
+		    tf.keras.layers.Conv2D(128, kernel_size = 3, strides=1, kernel_initializer='he_normal' ,padding='same', activation='relu'),
+		    tf.keras.layers.BatchNormalization(),
+		    
+		    tf.keras.layers.MaxPooling2D((2, 2)),
+		    tf.keras.layers.Conv2D(64, kernel_size = 3,kernel_initializer='he_normal', activation='relu'),
+		    tf.keras.layers.BatchNormalization(),
+		    
+		    tf.keras.layers.MaxPooling2D((4, 4)),
+		    tf.keras.layers.Dropout(0.2),
+
+		    tf.keras.layers.Flatten(),
+		    tf.keras.layers.Dense(256,kernel_initializer='he_normal', activation = "relu"),
+		    tf.keras.layers.Dropout(0.1),
+		    tf.keras.layers.Dense(10, kernel_initializer='glorot_uniform', activation = "softmax")
+		    ])
 
 			optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate[l])
+
 			model.compile(optimizer=optimizer,
 			         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
 			         metrics=['accuracy'])

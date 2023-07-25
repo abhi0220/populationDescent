@@ -91,8 +91,7 @@ def gradient_steps(lossfn, training_set, labels, batch_size, epochs, NN_object):
 				total_training_loss = NN_object.LR_constant * (model_loss + mreg_loss) # LR + REG randomization
 
 			# calculate the gradients using our tape and then update the model weights
-			grads = tape.gradient(model_loss, NN_object.nn.trainable_variables)
-			# grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization and regularization loss
+			grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization and regularization loss
 
 			NN_object.opt_obj.apply_gradients(zip(grads, NN_object.nn.trainable_variables))
 	tf.print("training loss: %s" % model_loss) ## remove this --> put nothing (put at recombination)
@@ -100,7 +99,6 @@ def gradient_steps(lossfn, training_set, labels, batch_size, epochs, NN_object):
 
 
 def NN_randomizer_manual_loss(NN_object, normalized_amount, input_factor):
-	print(""), print("RANDOMIZING")
 	# original: (0, 1e-3), (0, normalized_amount), (0, normalized amount)
 
 	factor = input_factor
@@ -118,25 +116,13 @@ def NN_randomizer_manual_loss(NN_object, normalized_amount, input_factor):
 
 	# randomizing regularization rate
 	mu, sigma = 0, (normalized_amount*factor) # 0.7, 1 #10 # 0.3
-	# print(mu, sigma)
-	# print("")
 	randomization = 2**(np.random.normal(mu, sigma))
 	new_reg_constant = (NN_object.reg_constant) * randomization
-
-	# print("reg randomization: %s" % randomization)
-	# print("%s NN_object.reg_constant" % NN_object.reg_constant)
-	# print("%s new_reg_constant" % new_reg_constant), print("")
 
 	# randomizing learning_rates
 	mu, sigma = 0, (normalized_amount*factor) # 0.7, 1, 10,x 0.3
 	randomization = 2**(np.random.normal(mu, sigma))
 	new_LR_constant = (NN_object.LR_constant) * randomization
-
-	# print("LR randomization: %s" % randomization)
-	# print("%s NN_object.LR_constant" % NN_object.LR_constant)
-	# print(normalized_amount)
-	# print("%s new_lr_constant" % new_LR_constant)
-	# print(""), print("factor=%s" % factor)
 
 	new_NN_Individual = NN_Individual(model_clone, NN_object.opt_obj, new_LR_constant, new_reg_constant) # without randoimzed LR
 
@@ -148,8 +134,6 @@ def observer(NN_object, tIndices):
 
 	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 	test_loss = lossfn(random_batch_validation_labels, NN_object.nn(random_batch_validation_images))
-	# print(test_loss)
-	# ntest_loss = 1/(1+test_loss)
 
 	return test_loss
 
@@ -158,30 +142,14 @@ def graph_history(history):
 	x = [j * rr for j in integers]
 	y = history
 	plt.scatter(x, history, s=20)
-	# plt.rcParams.update({'font.size': 10})
-	# figure(figsize=(3, 2), dpi=80)
-
-	# plt.tight_layout()
-	# plt.title("PD trial #%s" % trial)
-	# plt.ylabel('unnormalized loss of best model')
-	# plt.xlabel('iterations')
-
-	# plt.xlabel("%s\n\n%s\n\n%s\n\n%s" % (parameter_string, loss_data_string, best_training_model_string, best_test_model_loss_string))
-
-	# for i,j in zip(x,y):
-	# 	plt.annotate(str(j),xy=(i,j))
-	# plt.text(x[(len(x))-1], y[(len(y))-1], y[(len(y))-1])
-	# plt.axhline(y = y[(len(y))-1])
 
 	plt.tight_layout()
-	# plt.savefig("TEST_DATA/PD_trial_%s.png" % trial)
 	plt.show(block=True), plt.close()
 	plt.close('all')
 
 
 # returns training and test loss (UNNORMALIZED) on data chosen with random seed
 def evaluator(NN_object):
-	# classification_NN_compiler(NN_object) # only if using manual loss optimizer/randomizer
 	batch_size = 64
 
 	np.random.seed(0)
@@ -236,12 +204,6 @@ class Parameters(Generic[Individual]):
 	history: [np.array]
 	fine_tuner: Callable[[np.array], np.array]
 
-# updated np typing
-	# population: Callable[[int], npt.NDArray[Individual]]
-	# randomizer: Callable[[npt.NDArray[Individual], float], np.Array[Individual]]
-	# optimizer: Callable[[npt.NDArray[Individual]], np.Array[Individual]]
-
-
 
 def individual_to_params(
 	pop_size: int,
@@ -263,6 +225,7 @@ def individual_to_params(
 		return population, model_num
 
 	def Parameter_class_randomizer(population: np.array(Individual), normalized_amount: float) -> np.array(Individual):
+		print(""), print("RANDOMIZING")
 		randomized_population = np.zeros(len(population), dtype=object)
 		for i in range(len(population)):
 			new_object = individual_randomizer(population[i], normalized_amount[i], input_factor)
@@ -304,10 +267,10 @@ def individual_to_params(
 		return
 
 	def fine_tuner(population: np.array(Individual)) -> np.array(Individual):
-		for j in range(5):
+		for j in range(3):
 			for i in range(len(population)):
 				print(""), print("Fine-Tuning models"), print("model #%s" % (i+1)), print("")
-				normalized_training_loss, normalized_validation_loss = individual_optimizer(NN_Individual(*population[i]), 64, 64, 1)
+				normalized_training_loss, normalized_validation_loss = individual_optimizer(NN_Individual(*population[i]), 256, 64, 1)
 
 		return
 
@@ -330,11 +293,6 @@ def create_Parameters_NN_object(pop_size, randomization, CV_selection, rr):
 sample_shape = train_images[0].shape
 img_width, img_height = sample_shape[0], sample_shape[1]
 input_shape = (img_width, img_height, 1)
-# print(input_shape)
-
-# # Reshape data 
-# train_images = train_images.reshape(len(train_images), input_shape[0], input_shape[1], input_shape[2])
-# test_images  = test_images.reshape(len(test_images), input_shape[0], input_shape[1], input_shape[2])
 
 # normalizing data
 train_images, test_images = train_images / 255.0, test_images / 255.0
@@ -353,26 +311,25 @@ trial = 5
 SEED = [5]
 # 11, 24
 
-iterations = 25
+iterations = 5
 
-pop_size = 5
-number_of_replaced_individuals = 2
-randomization = True
+pop_size = 1
+number_of_replaced_individuals = 5
+randomization = False
 CV_selection = True
 rr = 1 # leash for exploration (how many iterations of gradient descent to run before randomization)
 
 # gradient descent parameters
-batch_size = 64
-batches = 128
+# for CIFAR: 32, 1562 works well in 10 epochs for model 5
+# 32, 1562 works well in 4 epochs for model 6
+batch_size = 32
+batches = 1562
 epochs = 1
 
 grad_steps = iterations * epochs * batches * pop_size
 
 # randomization amount
-input_factor = 15
-
-# # NN model chosen (from NN_models.py)
-# model_num = 4
+input_factor = 25
 
 graph = True
 
@@ -397,7 +354,6 @@ if __name__ == "__main__":
 
 	# number of "trials"
 	for i in range(len(SEED)):
-
 		print(""), print("MAJOR ITERATION %s: " % (i+1)), print("")
 
 		# set seed
@@ -409,6 +365,7 @@ if __name__ == "__main__":
 		#creating lists to store data
 		loss_data, acc_data, total_test_loss, batch_test_loss, total_test_acc = [], [], [], [], []
 
+		# measure time
 		import time
 		start_time = time.time()
 
@@ -419,47 +376,20 @@ if __name__ == "__main__":
 		time_lapsed = time.time() - start_time
 		print(""), print(""), print("time:"), print("--- %s seconds ---" % time_lapsed), print(""), print("")
 
-		# # using normalized loss data
-		# best_model = np.max(lfitnesses)
-		# lmean = statistics.mean(lfitnesses)
-		# loss_data.append(lmean)-
-
 		# evaluate from outside
 		total_hist, batch_hist = [], []
 
 		# returns UNNORMALIZED training and test loss, data chosen with a random seed
 		best_train_model_loss, best_test_model_loss = Parameter_class_evaluator(optimized_population)
 
-		# print(""), print("Title: PD vs Hyperparameter Search")
-		parameter_string = "CV_sel: %s, randomize=%s, %s iterations, %s models, %s replaced, rr=%s" % (CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr)
-		# print(""), print(parameter_string)
-		# print(""), print("")
-
-		# best_training_model_loss_unnormalized = ((1/best_model)-1)
-		# best_training_model_string_unnormalized = "unnormalized training loss of best model: %s" % best_train_model_loss
-		# print(best_training_model_string_unnormalized)
-
-		# print("")
-		# # print("normalized average test loss: %s" % avg_total_loss)
-		# print("")
-		# best_test_model_loss_string = "normalized (1/1+loss) best model test loss: %s" % best_test_model_loss
-		# print(best_test_model_loss_string)
-		# best_test_model_loss_unnormalized = ((1/best_test_model_loss)-1)
-		# best_test_model_string_unnormalized = "unnormalized test loss of best model: %s" % best_test_model_loss_unnormalized
-		# print(best_test_model_string_unnormalized)
-
-		# print("")
-		# print("time lapsed: %s" % time_lapsed)
-
-
-
 		# writing data to excel file
 		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, time_lapsed, epochs, batches, SEED[i]]]
 
-		# with open('/Users/abhi/Documents/research_data/pd_data_model4.csv', 'a', newline = '') as file:
-		# 	writer = csv.writer(file)
-		# 	writer.writerows(data)
+		with open('/Users/abhi/Documents/research_data/pd_data_model5_CIFAR.csv', 'a', newline = '') as file:
+			writer = csv.writer(file)
+			writer.writerows(data)
 
+		# graph data
 		if graph:
 			graph_history(history)
 
