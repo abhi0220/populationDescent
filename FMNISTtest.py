@@ -38,7 +38,7 @@ def NN_optimizer_manual_loss(NN_object, batches, batch_size, epochs):
 	# classification_NN_compiler(NN_object.nn)
 	batch_size = batch_size
 	epochs = epochs
-	normalized_training_loss, normalized_validation_loss = [], []
+	normalized_training_loss, normalized_validation_loss = [], `[]
 
 	print(""), print(NN_object), print("")
 	optimizer = NN_object.opt_obj

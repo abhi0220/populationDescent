@@ -30,6 +30,9 @@ import tensorflow as tf
 from populationDescent import populationDescent
 from NN_models import new_pd_NN_individual, new_hps_NN_individual
 
+import warnings
+warnings.filterwarnings("ignore")
+
 NN_Individual = namedtuple("NN_Individual", ["nn", "opt_obj", "LR_constant", "reg_constant"])
 tf.config.run_functions_eagerly(True)
 
@@ -290,6 +293,7 @@ def create_Parameters_NN_object(pop_size, randomization, CV_selection, rr):
 # CIFAR10 dataset
 (train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.cifar10.load_data()
 
+# print(train_labels.shape)
 sample_shape = train_images[0].shape
 img_width, img_height = sample_shape[0], sample_shape[1]
 input_shape = (img_width, img_height, 1)
@@ -311,11 +315,11 @@ trial = 5
 SEED = [5]
 # 11, 24
 
-iterations = 5
+iterations = 25
 
-pop_size = 1
-number_of_replaced_individuals = 5
-randomization = False
+pop_size = 5
+number_of_replaced_individuals = 2
+randomization = True
 CV_selection = True
 rr = 1 # leash for exploration (how many iterations of gradient descent to run before randomization)
 
@@ -323,7 +327,7 @@ rr = 1 # leash for exploration (how many iterations of gradient descent to run b
 # for CIFAR: 32, 1562 works well in 10 epochs for model 5
 # 32, 1562 works well in 4 epochs for model 6
 batch_size = 32
-batches = 1562
+batches = 312
 epochs = 1
 
 grad_steps = iterations * epochs * batches * pop_size
@@ -331,7 +335,7 @@ grad_steps = iterations * epochs * batches * pop_size
 # randomization amount
 input_factor = 25
 
-graph = True
+graph = False
 
 # seed:
 def set_seeds(seed=SEED):

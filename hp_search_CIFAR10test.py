@@ -122,8 +122,8 @@ for h in range(len(SEED)):
 	# PARAMETERS
 	iterations = 5
 
-	batch_size = 32
-	batches = 1562
+	batch_size = 1024
+	batches = 2
 	epochs = 1
 
 	gradient_steps = iterations * epochs * batches * (len(population))
@@ -139,13 +139,13 @@ for h in range(len(SEED)):
 	for i in tqdm(range(iterations)):
 
 		indices = np.random.choice(49999, size = (batch_size*batches, ), replace=False)
-		vIndices = np.random.choice(4999, size = (batch_size*10, ), replace=False)
+		vIndices = np.random.choice(4999, size = (batch_size*1, ), replace=False)
 
 		random_batch_train_images, random_batch_train_labels = train_images[indices], train_labels[indices]
 		random_batch_validation_images, random_batch_validation_labels = validation_images[vIndices], validation_labels[vIndices]
 
 		# indices
-		tIndices = np.random.choice(4999, size = (batch_size*10, ), replace=False)
+		tIndices = np.random.choice(4999, size = (batch_size*1, ), replace=False)
 		population_training_losses = []
 
 		for j in range(len(population)):
