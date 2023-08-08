@@ -146,6 +146,7 @@ def graph_history(history):
 	y = history
 	plt.scatter(x, history, s=20)
 
+	plt.title("PD CIFAR10")
 	plt.tight_layout()
 	plt.show(block=True), plt.close()
 	plt.close('all')
@@ -315,7 +316,7 @@ trial = 5
 SEED = [5]
 # 11, 24
 
-iterations = 25
+iterations = 75
 
 pop_size = 5
 number_of_replaced_individuals = 2
@@ -327,15 +328,15 @@ rr = 1 # leash for exploration (how many iterations of gradient descent to run b
 # for CIFAR: 32, 1562 works well in 10 epochs for model 5
 # 32, 1562 works well in 4 epochs for model 6
 batch_size = 32
-batches = 312
+batches = 128
 epochs = 1
 
 grad_steps = iterations * epochs * batches * pop_size
 
 # randomization amount
-input_factor = 25
+input_factor = 15
 
-graph = False
+graph = True
 
 # seed:
 def set_seeds(seed=SEED):
@@ -387,7 +388,7 @@ if __name__ == "__main__":
 		best_train_model_loss, best_test_model_loss = Parameter_class_evaluator(optimized_population)
 
 		# writing data to excel file
-		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, time_lapsed, epochs, batches, SEED[i]]]
+		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, time_lapsed, epochs, batches, batch_size, SEED[i]]]
 
 		with open('/Users/abhi/Documents/research_data/pd_data_model5_CIFAR.csv', 'a', newline = '') as file:
 			writer = csv.writer(file)

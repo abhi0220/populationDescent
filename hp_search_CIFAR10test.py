@@ -32,7 +32,8 @@ import csv
 from NN_models import new_hps_NN_individual
 
 # setting seed
-SEED = [5, 15, 24, 34, 97]
+# SEED = [5, 15, 24, 34, 97]
+SEED = [5]
 
 import os
 def set_seeds(seed=SEED):
@@ -62,11 +63,6 @@ for h in range(len(SEED)):
 	# CIFAR10 dataset
 	(train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.cifar10.load_data()
 
-	# sample_shape = train_images[0].shape
-	# img_width, img_height = sample_shape[0], sample_shape[1]
-	# input_shape = (img_width, img_height, 1)
-	# print(input_shape)
-
 	# normalizing data
 	train_images, test_images = train_images / 255.0, test_images / 255.0
 
@@ -93,23 +89,10 @@ for h in range(len(SEED)):
 
 		plt.scatter(x, history, s=20)
 
-		# plt.tight_layout()
-		# plt.title("HyperParameter Search trial #%s" % trial)
-		# plt.ylabel('unnormalized loss of best model')
-		# plt.xlabel('iterations')
-
-		# plt.xlabel("%s\n\n%s\n\n%s\n\n%s\n\n%s" % (model_string, training_loss_data_string, test_loss_data_string, best_lr_data, best_reg_amount_string))
-
-		# for i,j in zip(x,y):
-		# 	plt.annotate(str(j),xy=(i,j))
-		# plt.text(x[(len(x))-1], y[(len(y))-1], y[(len(y))-1])
-		# plt.axhline(y = y[(len(y))-1])
-
+		plt.title("PD CIFAR10")
 		plt.tight_layout()
 		# plt.savefig("TEST_DATA/HP_trial_%s.png" % trial)
 		plt.show(block=True), plt.pause(0.5), plt.close()
-
-
 
 
 	# Observation
@@ -120,16 +103,16 @@ for h in range(len(SEED)):
 
 
 	# PARAMETERS
-	iterations = 5
+	iterations = 20
 
-	batch_size = 1024
-	batches = 2
-	epochs = 1
+	batch_size = 64
+	batches = 256
+	epochs = 2
 
 	gradient_steps = iterations * epochs * batches * (len(population))
 
 
-	graph = False
+	graph = True
 
 
 	import time
@@ -197,8 +180,8 @@ for h in range(len(SEED)):
 		training_loss, training_accuracy = population[h].evaluate(random_batch_train_images, random_batch_train_labels, batch_size = batch_size)
 		test_loss, test_acc = population[h].evaluate(random_batch_test_images, random_batch_test_labels, batch_size = batch_size)
 
-		ntest_loss = 1/(1+test_loss)
-		ntest_loss = np.array(ntest_loss)
+		# ntest_loss = 1/(1+test_loss)
+		# ntest_loss = np.array(ntest_loss)
 
 		training_losses.append(training_loss)
 
@@ -208,7 +191,7 @@ for h in range(len(SEED)):
 
 	best_training_model_loss_unnormalized = np.min(training_losses)
 
-	best_test_model_loss = np.max(evaluation_losses)
+	best_test_model_loss = np.min(evaluation_losses)
 	best_index = evaluation_losses.index(best_test_model_loss)
 
 	best_lr = (population[best_index]).optimizer.learning_rate
@@ -225,10 +208,10 @@ for h in range(len(SEED)):
 	print("")
 	model_string = "model #%s" % (best_index+1)
 	print(model_string)
-	training_loss_data_string = "avg final normalized loss of population at end of iterations on training %s" % test_loss_data
+	training_loss_data_string = "avg final unnormalized loss of population at end of iterations on training %s" % test_loss_data
 	print(training_loss_data_string)
-	test_loss_data_string = "normalized test loss of best model: %s" % best_test_model_loss
-	best_test_loss_unnormalized = ((1/best_test_model_loss)-1)
+	test_loss_data_string = "unnormalized test loss of best model: %s" % best_test_model_loss
+	# best_test_loss_unnormalized = ((1/best_test_model_loss)-1)
 	print(test_loss_data_string)
 	best_lr_data = "best LR: %s" % best_lr
 	print(best_lr_data)
@@ -237,9 +220,9 @@ for h in range(len(SEED)):
 
 
 	# writing data to excel file
-	data = [[best_test_loss_unnormalized, best_training_model_loss_unnormalized, gradient_steps, model_num, best_reg_amount, best_lr, iterations, epochs, batches, batch_size, time_lapsed, s]]
+	data = [[best_test_model_loss, best_training_model_loss_unnormalized, gradient_steps, model_num, best_reg_amount, best_lr, iterations, epochs, batches, batch_size, time_lapsed, s]]
 
-	with open('/Users/abhi/Documents/research_data/hp_search_data_model4.csv', 'a', newline = '') as file:
+	with open('/Users/abhi/Documents/research_data/hp_search_data_model5.csv', 'a', newline = '') as file:
 		writer = csv.writer(file)
 		writer.writerows(data)
 

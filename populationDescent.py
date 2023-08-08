@@ -52,9 +52,9 @@ def populationDescent(Parameters, number_of_replaced_individuals, iterations):
 			if (Parameters.randomization)==True and i!=(iterations-1):
 				Parameters.population[0:number_of_replaced_individuals] = Parameters.randomizer(chosen_population, randomizer_strength)
 
-		# # observing optimization progress
-		# if i%(4)==0 and i!=(iterations-1)
-		# 	Parameters.observer(Parameters.population, Parameters.history)
+		# observing optimization progress
+		if i%(3)==0 and i!=(iterations-1):
+			Parameters.observer(Parameters.population, Parameters.history)
 
 
 	# fine tune parameters
