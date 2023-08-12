@@ -316,7 +316,7 @@ trial = 5
 SEED = [5]
 # 11, 24
 
-iterations = 75
+iterations = 15
 
 pop_size = 5
 number_of_replaced_individuals = 2
@@ -328,7 +328,7 @@ rr = 1 # leash for exploration (how many iterations of gradient descent to run b
 # for CIFAR: 32, 1562 works well in 10 epochs for model 5
 # 32, 1562 works well in 4 epochs for model 6
 batch_size = 32
-batches = 128
+batches = 512
 epochs = 1
 
 grad_steps = iterations * epochs * batches * pop_size
