@@ -13,7 +13,6 @@ from collections.abc import Callable
 
 from tqdm import tqdm
 from collections import namedtuple
-from sklearn.cluster import KMeans
 import statistics
 import dataclasses
 from dataclasses import dataclass
@@ -110,8 +109,8 @@ def new_pd_NN_individual():
 	# tf.keras.layers.Dense(10, activation='softmax')
 	# ])
 
-	# # model #4 with regularization (for ESGD model comparison)
-	# model_num = 4
+	# # model #4 with regularization
+	# model_num = "4"
 	# FM_input_shape = (28, 28, 1)
 	# model = tf.keras.Sequential([
 	# tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
@@ -148,38 +147,68 @@ def new_pd_NN_individual():
 	# ])
 
 
-	# model #6 - better, bigger CIFAR10 model
-	model_num = "6 CIFAR"
+	# model #6, no_reg - better, bigger CIFAR10 model
+	model_num = "6 no_reg CIFAR"
 	model = tf.keras.Sequential([
-    tf.keras.layers.Conv2D(32,  kernel_size = 3,kernel_initializer='he_normal', activation='relu', input_shape = (32, 32, 3)),
-    tf.keras.layers.BatchNormalization(),
+    tf.keras.layers.Conv2D(32,  kernel_size = 3, activation='relu', input_shape = (32, 32, 3)),
+    # tf.keras.layers.BatchNormalization(),
     
-    tf.keras.layers.Dropout(0.2),
+    # tf.keras.layers.Dropout(0.2),
     
-    tf.keras.layers.Conv2D(64, kernel_size = 3, kernel_initializer='he_normal', strides=1, activation='relu'),
-    tf.keras.layers.BatchNormalization(),
-    
-    tf.keras.layers.MaxPooling2D((2, 2)),
-    tf.keras.layers.Conv2D(128, kernel_size = 3, strides=1, kernel_initializer='he_normal' ,padding='same', activation='relu'),
-    tf.keras.layers.BatchNormalization(),
+    tf.keras.layers.Conv2D(64, kernel_size = 3, strides=1, activation='relu'),
+    # tf.keras.layers.BatchNormalization(),
     
     tf.keras.layers.MaxPooling2D((2, 2)),
-    tf.keras.layers.Conv2D(64, kernel_size = 3,kernel_initializer='he_normal', activation='relu'),
-    tf.keras.layers.BatchNormalization(),
+    tf.keras.layers.Conv2D(128, kernel_size = 3, strides=1, padding='same', activation='relu'),
+    # tf.keras.layers.BatchNormalization(),
+    
+    tf.keras.layers.MaxPooling2D((2, 2)),
+    tf.keras.layers.Conv2D(64, kernel_size = 3, activation='relu'),
+    # tf.keras.layers.BatchNormalization(),
     
     tf.keras.layers.MaxPooling2D((4, 4)),
-    tf.keras.layers.Dropout(0.2),
+    # tf.keras.layers.Dropout(0.2),
 
     tf.keras.layers.Flatten(),
-    tf.keras.layers.Dense(256,kernel_initializer='he_normal', activation = "relu"),
-    tf.keras.layers.Dropout(0.1),
-    tf.keras.layers.Dense(10, kernel_initializer='glorot_uniform', activation = "softmax")
+    tf.keras.layers.Dense(256, activation = "relu"),
+
+    tf.keras.layers.Dense(10, activation = "softmax")
     ])
 
 
+	# # model #6 with reg - CIFAR10 model
+	# model_num = "6 with_reg CIFAR"
+	# model = tf.keras.Sequential([
+ #    tf.keras.layers.Conv2D(32,  kernel_size = 3, activation='relu', input_shape = (32, 32, 3)),
+ #    # tf.keras.layers.BatchNormalization(),
+    
+ #    # tf.keras.layers.Dropout(0.2),
+    
+ #    tf.keras.layers.Conv2D(64, kernel_size = 3, strides=1, activation='relu'),
+ #    # tf.keras.layers.BatchNormalization(),
+    
+ #    tf.keras.layers.MaxPooling2D((2, 2)),
+ #    tf.keras.layers.Conv2D(128, kernel_size = 3, strides=1, padding='same', activation='relu'),
+ #    # tf.keras.layers.BatchNormalization(),
+    
+ #    tf.keras.layers.MaxPooling2D((2, 2)),
+ #    tf.keras.layers.Conv2D(64, kernel_size = 3, activation='relu'),
+ #    # tf.keras.layers.BatchNormalization(),
+    
+ #    tf.keras.layers.MaxPooling2D((4, 4)),
+ #    # tf.keras.layers.Dropout(0.2),
 
-	optimizer = tf.keras.optimizers.Adam() # 1e-3 (for FMNIST, CIFAR)
-	optimizer = tf.keras.optimizers.Adam(learning_rate=1e-3) # 1e-3 (for FMNIST, CIFAR)
+ #    tf.keras.layers.Flatten(),
+ #    tf.keras.layers.Dense(256, activation = "relu", kernel_regularizer=tf.keras.regularizers.l2(l=0.001)),
+
+ #    tf.keras.layers.Dense(10, activation = "softmax")
+ #    ])
+
+
+
+	# optimizer = tf.keras.optimizers.legacy.Adam() # 1e-3 (for FMNIST, CIFAR)
+	# optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=1e-3) # 1e-3 (for FMNIST)
+	optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=1e-2) # CIFAR (doesn't work well)
 	LR_constant = 10**(np.random.normal(-4, 2))
 	reg_constant = 10**(np.random.normal(0, 2))
 
@@ -189,7 +218,7 @@ def new_pd_NN_individual():
 	return NN_object, model_num
 
 
-
+# 
 
 # Testing Hyperparameter search
 def new_hps_NN_individual():
@@ -199,11 +228,10 @@ def new_hps_NN_individual():
 
 	# regularization_amount = [0.001, 0.01, 0.1]
 	# learning_rate = [0.001, 0.01, 0.1]
-
-	# regularization_amount = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
 	
-	regularization_amount = [0.1]
+	# regularization_amount = [0.1]
 	learning_rate = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+	regularization_amount = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
 
 	# regularization_amount = [0.01, 0.001, 0.0001, 0.00001, 0.000001, 5e-1, 5e-2, 5e-3, 5e-4, 5e-5]
 	# learning_rate = [0.01, 0.001, 0.0001, 0.00001, 0.000001, 5e-1, 5e-2, 5e-3, 5e-4, 5e-5]
@@ -289,35 +317,106 @@ def new_hps_NN_individual():
 			# ])
 
 
-			# model #6 - better, bigger CIFAR10 model
-			model_num = "6 CIFAR"
+			# # model #6 - better, bigger CIFAR10 model
+			# learning_rate = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+			# regularization_amount = [0]
+
+			# model_num = "6 CIFAR no_reg"
+			# model = tf.keras.Sequential([
+		 #    tf.keras.layers.Conv2D(32,  kernel_size = 3, activation='relu', input_shape = (32, 32, 3)),
+		 #    # tf.keras.layers.BatchNormalization(),
+		    
+		 #    # tf.keras.layers.Dropout(0.2),
+		    
+		 #    tf.keras.layers.Conv2D(64, kernel_size = 3, strides=1, activation='relu'),
+		 #    # tf.keras.layers.BatchNormalization(),
+		    
+		 #    tf.keras.layers.MaxPooling2D((2, 2)),
+		 #    tf.keras.layers.Conv2D(128, kernel_size = 3, strides=1, padding='same', activation='relu'),
+		 #    # tf.keras.layers.BatchNormalization(),
+		    
+		 #    tf.keras.layers.MaxPooling2D((2, 2)),
+		 #    tf.keras.layers.Conv2D(64, kernel_size = 3, activation='relu'),
+		 #    # tf.keras.layers.BatchNormalization(),
+		    
+		 #    tf.keras.layers.MaxPooling2D((4, 4)),
+		 #    # tf.keras.layers.Dropout(0.2),
+
+		 #    tf.keras.layers.Flatten(),
+		 #    tf.keras.layers.Dense(256, activation = "relu"),
+
+		 #    tf.keras.layers.Dense(10, activation = "softmax")
+		 #    ])
+
+
+		 	# model #6 with reg, better, bigger CIFAR10 model
+			# learning_rate = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+			# regularization_amount = [0.01, 0.001, 0.0001, 0.00001, 0.000001]
+
+			model_num = "6 CIFAR with_reg"
 			model = tf.keras.Sequential([
-		    tf.keras.layers.Conv2D(32,  kernel_size = 3, kernel_initializer='he_normal', activation='relu', input_shape = (32, 32, 3)),
+		    tf.keras.layers.Conv2D(32,  kernel_size = 3, activation='relu', input_shape = (32, 32, 3)),
 		    # tf.keras.layers.BatchNormalization(),
 		    
-		    tf.keras.layers.Dropout(0.2),
+		    # tf.keras.layers.Dropout(0.2),
 		    
-		    tf.keras.layers.Conv2D(64, kernel_size = 3, kernel_initializer='he_normal', strides=1, activation='relu'),
-		    # tf.keras.layers.BatchNormalization(),
-		    
-		    tf.keras.layers.MaxPooling2D((2, 2)),
-		    tf.keras.layers.Conv2D(128, kernel_size = 3, strides=1, kernel_initializer='he_normal', padding='same', activation='relu'),
+		    tf.keras.layers.Conv2D(64, kernel_size = 3, strides=1, activation='relu'),
 		    # tf.keras.layers.BatchNormalization(),
 		    
 		    tf.keras.layers.MaxPooling2D((2, 2)),
-		    tf.keras.layers.Conv2D(64, kernel_size = 3,kernel_initializer='he_normal', activation='relu'),
+		    tf.keras.layers.Conv2D(128, kernel_size = 3, strides=1, padding='same', activation='relu'),
+		    # tf.keras.layers.BatchNormalization(),
+		    
+		    tf.keras.layers.MaxPooling2D((2, 2)),
+		    tf.keras.layers.Conv2D(64, kernel_size = 3, activation='relu'),
 		    # tf.keras.layers.BatchNormalization(),
 		    
 		    tf.keras.layers.MaxPooling2D((4, 4)),
-		    tf.keras.layers.Dropout(0.2),
+		    # tf.keras.layers.Dropout(0.2),
 
 		    tf.keras.layers.Flatten(),
-		    tf.keras.layers.Dense(256, kernel_initializer='he_normal', activation = "relu"),
-		    tf.keras.layers.Dropout(0.1),
-		    tf.keras.layers.Dense(10, kernel_initializer='glorot_uniform', activation = "softmax")
+		    tf.keras.layers.Dense(256, activation = "relu", kernel_regularizer=tf.keras.regularizers.l2(l=regularization_amount[r])),
+
+		    tf.keras.layers.Dense(10, activation = "softmax")
 		    ])
 
-			optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate[l])
+
+		 #    # model #7 - bigger CIFAR
+			# model_num = "7 CIFAR no_reg"
+			# model = tf.keras.Sequential([
+		 #    tf.keras.layers.Conv2D(32,  kernel_size = 3, kernel_initializer='he_normal', activation='relu', input_shape = (32, 32, 3)),
+		 #    # tf.keras.layers.BatchNormalization(),
+		    
+		 #    # tf.keras.layers.Dropout(0.2),
+		    
+		 #    tf.keras.layers.Conv2D(64, kernel_size = 3, kernel_initializer='he_normal', strides=1, activation='relu'),
+		 #    # tf.keras.layers.BatchNormalization(),
+		    
+		 #    tf.keras.layers.MaxPooling2D((2, 2)),
+		 #    tf.keras.layers.Conv2D(128, kernel_size = 3, strides=1, kernel_initializer='he_normal', padding='same', activation='relu'),
+		 #    # tf.keras.layers.BatchNormalization(),
+		    
+		 #    tf.keras.layers.MaxPooling2D((2, 2)),
+		 #    tf.keras.layers.Conv2D(64, kernel_size = 3,kernel_initializer='he_normal', activation='relu'),
+		 #    # tf.keras.layers.BatchNormalization(),
+		    
+		 #    tf.keras.layers.MaxPooling2D((4, 4)),
+		 #    # tf.keras.layers.Dropout(0.2),
+
+		 #    tf.keras.layers.Flatten(),
+		 #    tf.keras.layers.Dense(512, activation = "relu"),
+		 #    tf.keras.layers.Dense(256, activation = "relu"),
+		 #    tf.keras.layers.Dense(128, activation = "relu"),
+
+		 #    # tf.keras.layers.Dropout(0.1),
+		 #    tf.keras.layers.Dense(10, kernel_initializer='glorot_uniform', activation = "softmax")
+		 #    ])
+
+
+
+
+
+			optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=learning_rate[l])
 
 			model.compile(optimizer=optimizer,
 			         loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),

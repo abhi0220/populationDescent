@@ -11,11 +11,10 @@ import csv
 # cd populationDescent/
 # python3 -m venv ~/venv-metal
 # source ~/venv-metal/bin/activate
-# pip3 install -r requirements_m1.txt
-# python3 -m keras_tuner_FMNISTtest
+# python3 -m keras_tuner_CIFAR10_test
 
 
-SEED = 100
+SEED = 60
 
 # seed:
 def set_seeds(seed=SEED):
@@ -40,23 +39,13 @@ s = [5, 15, 24, 34, 49, 60, 74, 89, 97, 100]
 set_global_determinism(seed=SEED)
 print(SEED), print("")
 
-# Fashion-MNIST dataset
-fashion_mnist = tf.keras.datasets.fashion_mnist
-(train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
 
-sample_shape = train_images[0].shape
-print(sample_shape)
-img_width, img_height = sample_shape[0], sample_shape[1]
-input_shape = (img_width, img_height, 1)
-
-# Reshape data 
-train_images = train_images.reshape(len(train_images), input_shape[0], input_shape[1], input_shape[2])
-test_images  = test_images.reshape(len(test_images), input_shape[0], input_shape[1], input_shape[2])
+# CIFAR10 dataset
+(train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.cifar10.load_data()
 
 # normalizing data
 train_images, test_images = train_images / 255.0, test_images / 255.0
 
-# splitting data into validation/test set
 validation_images, validation_labels = test_images[0:5000], test_labels[0:5000]
 test_images, test_labels = test_images[5000:], test_labels[5000:]
 
@@ -64,29 +53,72 @@ test_images, test_labels = test_images[5000:], test_labels[5000:]
 
 class MyHyperModel(keras_tuner.HyperModel):
     def build(self, hp):
-        """Builds a convolutional model."""
-        inputs = keras.Input(shape=(28, 28, 1))
-        x = keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu')(inputs)
-        x = keras.layers.Conv2D(filters=128, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu')(x)
-        x = keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu')(x)
 
+        # model_num = "6 CIFAR with_reg"
+        # model = tf.keras.Sequential([
+        # tf.keras.layers.Conv2D(32,  kernel_size = 3, activation='relu', input_shape = (32, 32, 3)),
+        # # tf.keras.layers.BatchNormalization(),
+        
+        # # tf.keras.layers.Dropout(0.2),
+        
+        # tf.keras.layers.Conv2D(64, kernel_size = 3, strides=1, activation='relu'),
+        # # tf.keras.layers.BatchNormalization(),
+        
+        # tf.keras.layers.MaxPooling2D((2, 2)),
+        # tf.keras.layers.Conv2D(128, kernel_size = 3, strides=1, padding='same', activation='relu'),
+        # # tf.keras.layers.BatchNormalization(),
+        
+        # tf.keras.layers.MaxPooling2D((2, 2)),
+        # tf.keras.layers.Conv2D(64, kernel_size = 3, activation='relu'),
+        # # tf.keras.layers.BatchNormalization(),
+        
+        # tf.keras.layers.MaxPooling2D((4, 4)),
+        # # tf.keras.layers.Dropout(0.2),
+
+        # tf.keras.layers.Flatten(),
+        # tf.keras.layers.Dense(256, activation = "relu", kernel_regularizer=tf.keras.regularizers.l2(l=regularization_amount[r])),
+
+        # tf.keras.layers.Dense(10, activation = "softmax")
+        # ])
+
+        """Builds a convolutional model."""
+        inputs = keras.Input((32, 32, 3))
+        x = keras.layers.Conv2D(filters=32, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu')(inputs)
+        x = keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu')(x)
+        # x = keras.layers.MaxPooling2D()(x)
+        x = keras.layers.Conv2D(filters=128, kernel_size=(3,3), dilation_rate=(1,1), activation='relu')(x)
+        # x = keras.layers.MaxPooling2D((2, 2))(x)
+        x = keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu')(x)
+        # x = keras.layers.MaxPooling2D((4, 4))(x)
 
         x = keras.layers.Flatten()(x)
-        x = keras.layers.Dense(1024)(x)
+        x = keras.layers.Dense(256, kernel_regularizer=tf.keras.regularizers.l2(l=hp.Float("regularization_rate", 1e-5, 1e-1)))(x)
         x = keras.layers.Activation("relu")(x)
-        x = keras.layers.Dropout(0.5)(x)
 
         outputs = keras.layers.Dense(10, activation="softmax")(x)
 
         model = keras.Model(inputs=inputs, outputs=outputs)
 
+
+        hp_learning_rate = hp.Float("learning_rate", 1e-5, 1e-1, sampling="log")
+
+        # custom_optimizer = keras.optimizers.Adam(learning_rate=hp.Float("learning_rate", 1e-5, 1e-1, sampling="log"))
+
+        model.compile(optimizer=keras.optimizers.Adam(learning_rate=hp_learning_rate),
+                loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                metrics=['accuracy'])
+
+
         return model
 
     def fit(self, hp, model, x, y, validation_data, callbacks=None, **kwargs):
-        batch_size = hp.Int("batch_size", 32, 224, step=32)
-        batches = hp.Int("batches", 32, 224, step=32)
+        # batch_size = hp.Int("batch_size", 4, 260, step=32)
+        # batches = hp.Int("batches", 4, 260, step=32)
 
-        indices = np.random.choice(59999, size = (batch_size*batches, ), replace=False)
+        batch_size = 64
+        batches = 128
+
+        indices = np.random.choice(49999, size = (batch_size*batches, ), replace=False)
         vIndices = np.random.choice(4999, size = (batch_size*10, ), replace=False)
 
         val_input_data = (validation_data[0][vIndices], validation_data[1][vIndices])
@@ -100,9 +132,7 @@ class MyHyperModel(keras_tuner.HyperModel):
 
 
         # Define the optimizer.
-        optimizer = keras.optimizers.Adam(
-            hp.Float("learning_rate", 1e-6, 1e-1, sampling="log")
-        )
+        optimizer = keras.optimizers.Adam(learning_rate=hp.Float("learning_rate", 1e-5, 1e-1, sampling="log"))
         loss_fn = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
         # The metric to track validation loss.
@@ -135,7 +165,8 @@ class MyHyperModel(keras_tuner.HyperModel):
         # Record the best validation loss value
         best_epoch_loss = float("inf")
 
-        epochs = hp.Int("epochs", 1, 12, step=1)
+        # epochs = hp.Int("epochs", 1, 12, step=1)
+        epochs = 1
 
         # The custom training loop.
         for epoch in range(epochs):
@@ -164,7 +195,7 @@ class MyHyperModel(keras_tuner.HyperModel):
 
 
 
-max_trials = 50
+max_trials = 0
 
 tuner = keras_tuner.RandomSearch(
     objective=keras_tuner.Objective("val_accuracy", "min"),
@@ -190,23 +221,25 @@ model.summary()
 
 # get best hyperparameters
 print(best_hps.values)
-custom_batch_size, custom_batches, custom_learning_rate, custom_epochs = best_hps["batch_size"], best_hps["batches"], best_hps["learning_rate"], best_hps["epochs"]
+# custom_batch_size, custom_batches, custom_learning_rate, custom_epochs = best_hps["batch_size"], best_hps["batches"], best_hps["learning_rate"], best_hps["epochs"]
+custom_learning_rate, custom_reg_rate = best_hps["learning_rate"], best_hps["regularization_rate"]
 
 # compiling with custom optimizer
-opt = tf.keras.optimizers.Adam(learning_rate = custom_learning_rate)
-model.compile(optimizer=opt, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
+# opt = tf.keras.optimizers.Adam(learning_rate = custom_learning_rate)
+# model.compile(optimizer=opt, loss="sparse_categorical_crossentropy", metrics=["accuracy"])
 # print(model.optimizer.get_config())
 
 # setting a callback to prevent overfitting
 # callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=1)
 
 # retraining model with best hyperparameters
-for i in range(15):
-    indices = np.random.choice(59999, size = (custom_batch_size*custom_batches, ), replace=False)
+for i in range(5):
+    # indices = np.random.choice(49999, size = (custom_batch_size*custom_batches, ), replace=False)
     vIndices = np.random.choice(4999, size = (64*10, ), replace=False)
     val_input_data = (validation_images[vIndices], validation_labels[vIndices])
 
-    model.fit(train_images[indices], train_labels[indices], epochs=1, verbose=1)
+    # model.fit(train_images[indices], train_labels[indices], batch_size=custom_batch_size, epochs=1, verbose=1)
+    model.fit(train_images, train_labels, batch_size=64, epochs=1, verbose=1)
     # model.fit(train_images[indices], train_labels[indices], validation_data=val_input_data, epochs=custom_epochs, callbacks=[callback], verbose=1)
 
 
@@ -232,11 +265,11 @@ print("unnormalized test loss: %s" % test_loss)
 
 
 
-model_num = "4_no_reg"
+model_num = "6_no_reg"
 
 
 # writing data to excel file
-data = [[test_loss, train_loss, model_num, max_trials, time_lapsed, custom_epochs, custom_batches, custom_batch_size, SEED]]
+data = [[test_loss, train_loss, model_num, max_trials, time_lapsed, custom_epochs, custom_batches, custom_batch_size, custom_learning_rate, SEED]]
 
 with open('/Users/abhi/Documents/research_data/keras_tuner_hyperband_FMNIST1.csv', 'a', newline = '') as file:
     writer = csv.writer(file)

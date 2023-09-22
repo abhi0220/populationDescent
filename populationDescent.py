@@ -32,7 +32,6 @@ def populationDescent(Parameters, number_of_replaced_individuals, iterations):
 
 				# #choosing individuals from weighted distribution (training)
 				chosen_indices = np.array((random.choices(np.arange(Parameters.population.shape[0]), weights = lFitnesses, k = number_of_replaced_individuals)))
-				print(chosen_indices)
 				chosen_population = Parameters.population[chosen_indices]
 				randomizer_strength = 1 - (lFitnesses[chosen_indices])
 
@@ -53,12 +52,13 @@ def populationDescent(Parameters, number_of_replaced_individuals, iterations):
 				Parameters.population[0:number_of_replaced_individuals] = Parameters.randomizer(chosen_population, randomizer_strength)
 
 		# observing optimization progress
-		if i%(3)==0 and i!=(iterations-1):
+		# if i%(1)==0 and i!=(iterations-1):
+		if i%(1)==0:
 			Parameters.observer(Parameters.population, Parameters.history)
 
 
 	# fine tune parameters
-	Parameters.fine_tuner(Parameters.population)
+	# Parameters.fine_tuner(Parameters.population)
 
 	return Parameters.population, lFitnesses, vFitnesses, Parameters.history
 

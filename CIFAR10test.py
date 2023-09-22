@@ -4,6 +4,13 @@
 # pip3.9 install -r requirements.txt
 # pip3.9 install -r requirements_m1.txt
 
+# cd Documents
+# cd populationDescent
+# python3 -m venv ~/venv-metal
+# source ~/venv-metal/bin/activate
+# python3 -m CIFAR10test
+
+
 import csv
 import os
 
@@ -76,60 +83,73 @@ def NN_optimizer_manual_loss(NN_object, batches, batch_size, epochs):
 @tf.function
 def gradient_steps(lossfn, training_set, labels, batch_size, epochs, NN_object):
 
-	for e in range(epochs):
-		for x_batch, y_batch in tf.data.Dataset.from_tensor_slices((training_set, labels)).batch(batch_size): # need this for tf.GradientTape to work like model.fit
-			with tf.GradientTape() as tape:
+	with tf.device('/device:GPU:0'):
+		for e in range(epochs):
+			for x_batch, y_batch in tf.data.Dataset.from_tensor_slices((training_set, labels)).batch(batch_size): # need this for tf.GradientTape to work like model.fit
+				with tf.GradientTape() as tape:
 
-				# make a prediction using the model and then calculate the loss
-				model_loss = lossfn(y_batch, NN_object.nn(x_batch))
-			
-				# use regularization constant
-				regularization_loss = NN_object.nn.losses
-				if len(regularization_loss) == 0:
-					reg_loss = 0
-				else:
-					reg_loss = regularization_loss[0]
+					# make a prediction using the model and then calculate the loss
+					model_loss = lossfn(y_batch, NN_object.nn(x_batch))
+				
+					# use regularization constant
+					regularization_loss = NN_object.nn.losses
+					if len(regularization_loss) == 0:
+						reg_loss = 0
+					else:
+						reg_loss = regularization_loss[0]
 
-				mreg_loss = reg_loss * NN_object.reg_constant
-				total_training_loss = NN_object.LR_constant * (model_loss + mreg_loss) # LR + REG randomization
+					mreg_loss = reg_loss * NN_object.reg_constant
+					total_training_loss = NN_object.LR_constant * (model_loss + mreg_loss) # LR + REG randomization
 
-			# calculate the gradients using our tape and then update the model weights
-			grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization and regularization loss
+				# calculate the gradients using our tape and then update the model weights
+				grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization and regularization loss
+				# tf.print(grads)
+				# loop over gradients as a list, for each element do tf.absolutevalue and get tf.reduceMean
 
-			NN_object.opt_obj.apply_gradients(zip(grads, NN_object.nn.trainable_variables))
+				NN_object.opt_obj.apply_gradients(zip(grads, NN_object.nn.trainable_variables))
 	tf.print("training loss: %s" % model_loss) ## remove this --> put nothing (put at recombination)
 	return model_loss
 
+# function optimized to take gradient steps with tf variables
 
 def NN_randomizer_manual_loss(NN_object, normalized_amount, input_factor):
 	# original: (0, 1e-3), (0, normalized_amount), (0, normalized amount)
 
-	factor = input_factor
+	with tf.device('/device:GPU:0'):
+		factor = input_factor
 
-	# randomizing NN weights
-	model_clone = tf.keras.models.clone_model(NN_object.nn)
-	model_clone.set_weights(np.array(NN_object.nn.get_weights()))
+		# randomizing NN weights
+		model_clone = tf.keras.models.clone_model(NN_object.nn)
+		# model_clone.set_weights(np.array(NN_object.nn.get_weights()))
+		model_clone.set_weights(NN_object.nn.get_weights())
 
-	mu, sigma = 0, (1e-2) #1e-4 for sin
-	gNoise = (np.random.normal(mu, sigma))*(normalized_amount)
+		mu, sigma = 0, (1e-2) #1e-4 for sin
+		# gNoise = (np.random.normal(mu, sigma))*(normalized_amount)
+		gNoise = (np.random.normal(mu, sigma))*(normalized_amount)
 
-	weights = np.array((NN_object.nn.get_weights()))
-	randomized_weights = weights + gNoise
-	model_clone.set_weights(randomized_weights)
+		# weights = np.array((NN_object.nn.get_weights()))
+		weights = (NN_object.nn.get_weights())
+		randomized_weights = [w + gNoise for w in NN_object.nn.get_weights()]
 
-	# randomizing regularization rate
-	mu, sigma = 0, (normalized_amount*factor) # 0.7, 1 #10 # 0.3
-	randomization = 2**(np.random.normal(mu, sigma))
-	new_reg_constant = (NN_object.reg_constant) * randomization
+		# randomized_weights = weights + gNoise
+		# model_clone.set_weights(randomized_weights)
 
-	# randomizing learning_rates
-	mu, sigma = 0, (normalized_amount*factor) # 0.7, 1, 10,x 0.3
-	randomization = 2**(np.random.normal(mu, sigma))
-	new_LR_constant = (NN_object.LR_constant) * randomization
+		model_clone.set_weights(randomized_weights)
 
-	new_NN_Individual = NN_Individual(model_clone, NN_object.opt_obj, new_LR_constant, new_reg_constant) # without randoimzed LR
+		# randomizing regularization rate
+		mu, sigma = 0, (normalized_amount*factor) # 0.7, 1 #10 # 0.3
+		randomization = 2**(np.random.normal(mu, sigma))
+		new_reg_constant = (NN_object.reg_constant) * randomization
+
+		# randomizing learning_rates
+		mu, sigma = 0, (normalized_amount*factor) # 0.7, 1, 10,x 0.3
+		randomization = 2**(np.random.normal(mu, sigma))
+		new_LR_constant = (NN_object.LR_constant) * randomization
+
+		new_NN_Individual = NN_Individual(model_clone, NN_object.opt_obj, new_LR_constant, new_reg_constant) # without randoimzed LR
 
 	return new_NN_Individual
+
 
 # unnormalized
 def observer(NN_object, tIndices):
@@ -313,32 +333,36 @@ test_images, test_labels = test_images[5000:], test_labels[5000:]
 trial = 5
 
 # PARAMETERS
-SEED = [5]
+SEED = [100]
 # 11, 24
+# SEED = [5, 15, 24, 34, 97]
+# SEED = [49, 60, 74, 89, 100]
 
-iterations = 15
+iterations = 6
 
-pop_size = 5
-number_of_replaced_individuals = 2
-randomization = True
+pop_size = 1
+number_of_replaced_individuals = 3
+randomization = False
 CV_selection = True
 rr = 1 # leash for exploration (how many iterations of gradient descent to run before randomization)
 
 # gradient descent parameters
 # for CIFAR: 32, 1562 works well in 10 epochs for model 5
 # 32, 1562 works well in 4 epochs for model 6
-batch_size = 32
-batches = 512
+batch_size = 4
+batches = 12499
 epochs = 1
+
+lr = 1e-2
 
 grad_steps = iterations * epochs * batches * pop_size
 
 # randomization amount
-input_factor = 15
+input_factor = 20
 
 graph = True
 
-# seed:
+# seed:s
 def set_seeds(seed=SEED):
     os.environ['PYTHONHASHSEED'] = str(seed)
     random.seed(seed)
@@ -388,9 +412,9 @@ if __name__ == "__main__":
 		best_train_model_loss, best_test_model_loss = Parameter_class_evaluator(optimized_population)
 
 		# writing data to excel file
-		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, time_lapsed, epochs, batches, batch_size, SEED[i]]]
+		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, epochs, batches, batch_size, lr, time_lapsed, SEED[i]]]
 
-		with open('/Users/abhi/Documents/research_data/pd_data_model5_CIFAR.csv', 'a', newline = '') as file:
+		with open('/Users/abhi/Documents/research_data/pd_data_model6_CIFAR.csv', 'a', newline = '') as file:
 			writer = csv.writer(file)
 			writer.writerows(data)
 
