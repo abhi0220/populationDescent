@@ -11,30 +11,105 @@ import csv
 # cd populationDescent/
 # python3 -m venv ~/venv-metal
 # source ~/venv-metal/bin/activate
-# python3 -m keras_tuner_CIFAR_new
+# python3 -m keras_tuner_FMNIST_new
 
-# grad_steps = 25 trials * 2 executions each trial * 782 batches per execution + (5 * 782) for final training = 43000 steps
+# grad_steps = 25 trials * 2 executions each trial * 938 batches per execution + (20 * 782) for final training = 43000 steps
+
+
+# def graph_history(history):
+# 	integers = [i for i in range(1, (len(history))+1)]
+
+# 	ema = []
+# 	avg = history[0]
+
+# 	ema.append(avg)
+
+# 	for loss in history:
+# 		avg = (avg * 0.9) + (0.1 * loss)
+# 		ema.append(avg)
+
+
+# 	x = [j * 938 for j in integers]
+# 	y = history
+
+# 	# plot line
+# 	plt.plot(x, ema[:len(history)])
+# 	# plot title/captions
+# 	plt.title("Keras Tuner FMNIST")
+# 	plt.xlabel("Gradient Steps")
+# 	plt.ylabel("Validation Loss")
+# 	plt.tight_layout()
+
+
+# 	print("ema:"), print(ema), print("")
+# 	print("x:"), print(x), print("")
+# 	print("history:"), print(history), print("")
+
+
+	
+# 	# plt.savefig("TEST_DATA/PD_trial_%s.png" % trial)
+# 	def save_image(filename):
+# 	    p = PdfPages(filename)
+# 	    fig = plt.figure(1)
+# 	    fig.savefig(p, format='pdf') 
+# 	    p.close()
+
+# 	filename = "KerasTuner_FMNIST_progress_with_reg_model4_line.pdf"
+# 	save_image(filename)
+
+# 	# plot points too
+# 	plt.scatter(x, history, s=20)
+
+# 	def save_image(filename):
+# 	    p = PdfPages(filename)
+# 	    fig = plt.figure(1)
+# 	    fig.savefig(p, format='pdf') 
+# 	    p.close()
+
+# 	filename = "KerasTuner_FMNIST_progress_with_reg_model4_with_points.pdf"
+# 	save_image(filename)
+
+
+# 	plt.show(block=True), plt.close()
+# 	plt.close('all')
+
+
+# # history = [] # initialize with for first point
+
+# # unnormalized
+# def observer(NN_object, tIndices):
+# 	batch_size = 64
+# 	tIndices = np.random.choice(4999, size = (batch_size*10, ), replace=False)
+
+# 	random_batch_FM_validation_images, random_batch_FM_validation_labels = validation_images[tIndices], validation_labels[tIndices]
+
+# 	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+# 	test_loss = lossfn(random_batch_FM_validation_labels, NN_object.nn(random_batch_FM_validation_images))
+# 	# print(test_loss)
+# 	# ntest_loss = 1/(1+test_loss)
+
+# 	return test_loss
 
 
 
 # Fashion-MNIST dataset
 fashion_mnist = tf.keras.datasets.fashion_mnist
-(FM_train_images, FM_train_labels), (FM_test_images, FM_test_labels) = fashion_mnist.load_data()
+(train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
 
-sample_shape = FM_train_images[0].shape
+sample_shape = train_images[0].shape
 img_width, img_height = sample_shape[0], sample_shape[1]
-FM_input_shape = (img_width, img_height, 1)
+input_shape = (img_width, img_height, 1)
 
 # Reshape data
-FM_train_images = FM_train_images.reshape(len(FM_train_images), FM_input_shape[0], FM_input_shape[1], FM_input_shape[2])
-FM_test_images  = FM_test_images.reshape(len(FM_test_images), FM_input_shape[0], FM_input_shape[1], FM_input_shape[2])
+train_images = train_images.reshape(len(train_images), input_shape[0], input_shape[1], input_shape[2])
+test_images  = test_images.reshape(len(test_images), input_shape[0], input_shape[1], input_shape[2])
 
 # normalizing data
-FM_train_images, FM_test_images = FM_train_images / 255.0, FM_test_images / 255.0
+train_images, test_images = train_images / 255.0, test_images / 255.0
 
 # splitting data into validation/test set
-FM_validation_images, FM_validation_labels = FM_test_images[0:5000], FM_test_labels[0:5000]
-FM_test_images, FM_test_labels = FM_test_images[5000:], FM_test_labels[5000:]
+validation_images, validation_labels = test_images[0:5000], test_labels[0:5000]
+test_images, test_labels = test_images[5000:], test_labels[5000:]
 
 
 
@@ -84,8 +159,8 @@ def set_global_determinism(seed):
 	tf.config.threading.set_intra_op_parallelism_threads(1)
 
 
-
-SEED = [5, 15, 24, 34, 49, 60, 74, 89, 97, 100]
+SEED = [5]
+# SEED = [5, 15, 24, 34, 49, 60, 74, 89, 97, 100]
 # s = [5, 15, 24, 34, 49, 60, 74, 89, 97, 100]
 
 for seed in SEED:  
@@ -129,8 +204,11 @@ for seed in SEED:
 	print("")
 	print("TRAINING")
 	train_epochs = 20
-	model.fit(train_images, train_labels, batch_size= 64, validation_data=(validation_images, validation_labels), epochs=train_epochs, callbacks=[callback])
+	hist = model.fit(train_images, train_labels, batch_size=64, validation_data=(validation_images, validation_labels), epochs=train_epochs, callbacks=[callback])
 
+	# getting history
+	print(hist.history["val_loss"])
+	graph_history(hist.history["val_loss"])
 
 	time_lapsed = time.time() - start_time
 

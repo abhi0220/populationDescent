@@ -19,22 +19,22 @@ import csv
 
 # Fashion-MNIST dataset
 fashion_mnist = tf.keras.datasets.fashion_mnist
-(FM_train_images, FM_train_labels), (FM_test_images, FM_test_labels) = fashion_mnist.load_data()
+(train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
 
-sample_shape = FM_train_images[0].shape
+sample_shape = train_images[0].shape
 img_width, img_height = sample_shape[0], sample_shape[1]
-FM_input_shape = (img_width, img_height, 1)
+input_shape = (img_width, img_height, 1)
 
 # Reshape data
-FM_train_images = FM_train_images.reshape(len(FM_train_images), FM_input_shape[0], FM_input_shape[1], FM_input_shape[2])
-FM_test_images  = FM_test_images.reshape(len(FM_test_images), FM_input_shape[0], FM_input_shape[1], FM_input_shape[2])
+train_images = train_images.reshape(len(train_images), input_shape[0], input_shape[1], input_shape[2])
+test_images  = test_images.reshape(len(test_images), input_shape[0], input_shape[1], input_shape[2])
 
 # normalizing data
-FM_train_images, FM_test_images = FM_train_images / 255.0, FM_test_images / 255.0
+train_images, test_images = train_images / 255.0, test_images / 255.0
 
 # splitting data into validation/test set
-FM_validation_images, FM_validation_labels = FM_test_images[0:5000], FM_test_labels[0:5000]
-FM_test_images, FM_test_labels = FM_test_images[5000:], FM_test_labels[5000:]
+validation_images, validation_labels = test_images[0:5000], test_labels[0:5000]
+test_images, test_labels = test_images[5000:], test_labels[5000:]
 
 
 
@@ -86,8 +86,10 @@ def set_global_determinism(seed):
 
 
 
-SEED = [5, 15, 24, 34, 49, 60, 74, 89, 97, 100]
+SEED = [24, 34, 49, 60, 74, 89, 97, 100]
 # s = [5, 15, 24, 34, 49, 60, 74, 89, 97, 100]
+
+
 
 for seed in SEED:  
 
@@ -113,9 +115,9 @@ for seed in SEED:
 	    project_name="FMNIST: %s" % SEED
 	)
 
-
-	# search
-	tuner.search(train_images, train_labels, validation_data=(validation_images, validation_labels), batch_size=64)
+	with tf.device('/device:GPU:0'):
+		# search
+		tuner.search(train_images, train_labels, validation_data=(validation_images, validation_labels), batch_size=64)
 
 	# retrieve and train best model
 	best_hps = tuner.get_best_hyperparameters(5)
