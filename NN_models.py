@@ -207,8 +207,8 @@ def new_pd_NN_individual():
 
 
 	# optimizer = tf.keras.optimizers.legacy.Adam() # 1e-3 (for FMNIST, CIFAR)
-	# optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=1e-3) # 1e-3 (for FMNIST)
-	optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=1e-2) # CIFAR (doesn't work well)
+	optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=1e-3) # 1e-3 (for FMNIST)
+	# optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=1e-2) # CIFAR (doesn't work well)
 	LR_constant = 10**(np.random.normal(-4, 2))
 	reg_constant = 10**(np.random.normal(0, 2))
 

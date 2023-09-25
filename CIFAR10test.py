@@ -330,35 +330,34 @@ test_images, test_labels = test_images[5000:], test_labels[5000:]
 
 
 
-trial = 5
 
 # PARAMETERS
-SEED = [100]
+SEED = [5, 15, 24, 34, 49, 60]
 # 11, 24
 # SEED = [5, 15, 24, 34, 97]
 # SEED = [49, 60, 74, 89, 100]
 
-iterations = 6
+iterations = 30
 
 pop_size = 1
 number_of_replaced_individuals = 3
-randomization = False
+randomization = True
 CV_selection = True
 rr = 1 # leash for exploration (how many iterations of gradient descent to run before randomization)
 
 # gradient descent parameters
 # for CIFAR: 32, 1562 works well in 10 epochs for model 5
 # 32, 1562 works well in 4 epochs for model 6
-batch_size = 4
-batches = 12499
+batch_size = 64
+batches = 128
 epochs = 1
 
-lr = 1e-2
+# lr = 1e-2
 
 grad_steps = iterations * epochs * batches * pop_size
 
 # randomization amount
-input_factor = 20
+input_factor = 15
 
 graph = True
 
@@ -381,7 +380,6 @@ def set_global_determinism(seed=SEED):
 ## MAIN RUNNING CODE
 if __name__ == "__main__":
 
-	# number of "trials"
 	for i in range(len(SEED)):
 		print(""), print("MAJOR ITERATION %s: " % (i+1)), print("")
 
