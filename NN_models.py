@@ -88,6 +88,7 @@ def new_pd_NN_individual():
  #    ])
 
 
+	print(model.summary())
 
 	# optimizer = tf.keras.optimizers.legacy.Adam() # 1e-3 (for FMNIST, CIFAR)
 	optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=1e-3) # 1e-3 (for FMNIST)

@@ -99,7 +99,8 @@ def gradient_steps(lossfn, training_set, labels, batch_size, epochs, NN_object):
 						reg_loss = regularization_loss[0]
 
 					mreg_loss = reg_loss * NN_object.reg_constant
-					total_training_loss = NN_object.LR_constant * (model_loss + mreg_loss) # LR + REG randomization
+					total_training_loss = (model_loss + mreg_loss) # REG randomization
+					# total_training_loss = NN_object.LR_constant * (model_loss + mreg_loss) # LR + REG randomization
 
 				# calculate the gradients using our tape and then update the model weights
 				grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization and regularization loss
@@ -207,8 +208,8 @@ def Parameter_class_evaluator(population):
 		pop_test_loss.append(individual_test_loss)
 
 	# avg_total_test_loss = np.mean(all_test_loss)
-	best_train_model_loss = np.min(pop_train_loss)
 	best_test_model_loss = np.min(pop_test_loss)
+	best_train_model_loss = pop_train_loss[pop_test_loss.index(best_test_model_loss)]
 
 	return best_train_model_loss, best_test_model_loss
 
@@ -332,34 +333,35 @@ test_images, test_labels = test_images[5000:], test_labels[5000:]
 
 
 # PARAMETERS
-SEED = [5, 15, 24, 34, 49, 60]
+# SEED = [34]
 # 11, 24
 # SEED = [5, 15, 24, 34, 97]
+SEED = [5, 15, 24]
 # SEED = [49, 60, 74, 89, 100]
 
-iterations = 30
+iterations = 20
 
-pop_size = 1
-number_of_replaced_individuals = 3
+## global parameters
+pop_size = 5
+number_of_replaced_individuals = 2
 randomization = True
-CV_selection = True
+CV_selection = False
 rr = 1 # leash for exploration (how many iterations of gradient descent to run before randomization)
 
-# gradient descent parameters
-# for CIFAR: 32, 1562 works well in 10 epochs for model 5
-# 32, 1562 works well in 4 epochs for model 6
+## gradient descent parameters
 batch_size = 64
+# batch_size = [4, 32, 64]
 batches = 128
-epochs = 1
+epochs = 2
 
-# lr = 1e-2
+lr = 1e-3
 
 grad_steps = iterations * epochs * batches * pop_size
 
 # randomization amount
 input_factor = 15
 
-graph = True
+graph = False
 
 # seed:s
 def set_seeds(seed=SEED):
@@ -413,6 +415,7 @@ if __name__ == "__main__":
 		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, epochs, batches, batch_size, lr, time_lapsed, SEED[i]]]
 
 		with open('/Users/abhi/Documents/research_data/pd_data_model6_CIFAR.csv', 'a', newline = '') as file:
+		# with open('/Users/abhi/Documents/research_data/pd_data_model6_CIFAR_local_sensitivity.csv', 'a', newline = '') as file:
 			writer = csv.writer(file)
 			writer.writerows(data)
 
