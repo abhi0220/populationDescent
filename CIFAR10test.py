@@ -306,7 +306,7 @@ def create_Parameters_NN_object(pop_size, randomization, CV_selection, rr):
 	history = []
 
 	# creates Parameter object to pass into Population Descent
-	object = individual_to_params(pop_size, new_pd_NN_individual, NN_randomizer_manual_loss, NN_optimizer_manual_loss, observer, randomization=randomization, CV_selection=CV_selection, rr=rr, history=history)
+	object = individual_to_params(pop_size, lambda: new_pd_NN_individual(lr), NN_randomizer_manual_loss, NN_optimizer_manual_loss, observer, randomization=randomization, CV_selection=CV_selection, rr=rr, history=history)
 	object.population, model_num = object.population(pop_size) # initiazling population
 
 	return object, model_num
@@ -339,8 +339,8 @@ SEED = [5, 15, 24, 34, 49, 60]
 
 iterations = 30
 
-pop_size = 1
-number_of_replaced_individuals = 3
+pop_size = 5
+number_of_replaced_individuals = 2
 randomization = True
 CV_selection = True
 rr = 1 # leash for exploration (how many iterations of gradient descent to run before randomization)
@@ -352,7 +352,7 @@ batch_size = 64
 batches = 128
 epochs = 1
 
-# lr = 1e-2
+lr = 1e-3
 
 grad_steps = iterations * epochs * batches * pop_size
 
@@ -412,7 +412,7 @@ if __name__ == "__main__":
 		# writing data to excel file
 		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, epochs, batches, batch_size, lr, time_lapsed, SEED[i]]]
 
-		with open('/Users/abhi/Documents/research_data/pd_data_model6_CIFAR.csv', 'a', newline = '') as file:
+		with open('./pd_data_model6_CIFAR.csv', 'a', newline = '') as file:
 			writer = csv.writer(file)
 			writer.writerows(data)
 
