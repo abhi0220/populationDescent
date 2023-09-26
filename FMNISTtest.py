@@ -61,6 +61,7 @@ def NN_optimizer_manual_loss(NN_object, batches, batch_size, epochs):
 	random_batch_FM_validation_images, random_batch_FM_validation_labels = FM_validation_images[vIndices], FM_validation_labels[vIndices]
 
 	model_loss = gradient_steps(lossfn, random_batch_FM_train_images, random_batch_FM_train_labels, batch_size, epochs, NN_object)
+	print(NN_object.LR_constant)
 
 	validation_loss = lossfn(random_batch_FM_validation_labels, NN_object.nn(random_batch_FM_validation_images))
 	tf.print("validation loss: %s" % validation_loss), print("")
@@ -97,10 +98,13 @@ def gradient_steps(lossfn, training_set, labels, batch_size, epochs, NN_object):
 						reg_loss = regularization_loss[0]
 
 					mreg_loss = reg_loss * NN_object.reg_constant
+					# total_training_loss = (model_loss + mreg_loss) # LR + REG randomization
 					total_training_loss = NN_object.LR_constant * (model_loss + mreg_loss) # LR + REG randomization
 
 				# calculate the gradients using our tape and then update the model weights
 				grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization and regularization loss
+				# x = [abs(grad) for grad in grads]
+				# tf.print(tf.reduce_mean([tf.reduce_mean(tf.abs(g)) for g in grads if g is not None])) # print average gradient magnitude
 
 				NN_object.opt_obj.apply_gradients(zip(grads, NN_object.nn.trainable_variables))
 
@@ -155,34 +159,35 @@ def observer(NN_object, tIndices):
 
 def graph_history(history, grad_steps):
 	integers = [i for i in range(1, (len(history))+1)]
+
+	ema = []
+	avg = history[0]
+
+	ema.append(avg)
+
+	for loss in history:
+		avg = (avg * 0.9) + (0.1 * loss)
+		ema.append(avg)
+
+
 	x = [j * rr * (batches * pop_size) for j in integers]
 	y = history
 
-	
-	
-	print('history')
-	plt.scatter(x, history, s=20)
-	# plt.rcParams.update({'font.size': 10})
-	# figure(figsize=(3, 2), dpi=80)
-
-	# plt.tight_layout()
-	# plt.title("PD trial #%s" % trial)
-	# plt.ylabel('unnormalized loss of best model')
-	# plt.xlabel('iterations')
-
-	# plt.xlabel("%s\n\n%s\n\n%s\n\n%s" % (parameter_string, loss_data_string, best_training_model_string, best_test_model_loss_string))
-
-	# for i,j in zip(x,y):
-	# 	plt.annotate(str(j),xy=(i,j))
-	# plt.text(x[(len(x))-1], y[(len(y))-1], y[(len(y))-1])
-	# plt.axhline(y = y[(len(y))-1])
-
+	# plot line
+	plt.plot(x, ema[:len(history)])
+	# plot title/captions
 	plt.title("Population Descent FMNIST")
 	plt.xlabel("Gradient Steps")
 	plt.ylabel("Validation Loss")
-
-
 	plt.tight_layout()
+
+
+	print("ema:"), print(ema), print("")
+	print("x:"), print(x), print("")
+	print("history:"), print(history), print("")
+
+
+	
 	# plt.savefig("TEST_DATA/PD_trial_%s.png" % trial)
 	def save_image(filename):
 	    p = PdfPages(filename)
@@ -190,8 +195,21 @@ def graph_history(history, grad_steps):
 	    fig.savefig(p, format='pdf') 
 	    p.close()
 
-	filename = "pd_FMNIST_progress_no_reg_model4.pdf"
+	filename = "pd_FMNIST_progress_with_reg_model4_line.pdf"
 	save_image(filename)
+
+	# plot points too
+	plt.scatter(x, history, s=20)
+
+	def save_image(filename):
+	    p = PdfPages(filename)
+	    fig = plt.figure(1)
+	    fig.savefig(p, format='pdf') 
+	    p.close()
+
+	filename = "pd_FMNIST_progress_with_reg_model4_with_points.pdf"
+	save_image(filename)
+
 
 
 	plt.show(block=True), plt.close()
@@ -232,8 +250,8 @@ def Parameter_class_evaluator(population):
 		pop_test_loss.append(individual_test_loss)
 
 	# avg_total_test_loss = np.mean(all_test_loss)
-	best_train_model_loss = np.min(pop_train_loss)
 	best_test_model_loss = np.min(pop_test_loss)
+	best_train_model_loss = pop_train_loss[pop_test_loss.index(best_test_model_loss)]
 
 	return best_train_model_loss, best_test_model_loss
 
@@ -366,12 +384,10 @@ FM_test_images, FM_test_labels = FM_test_images[5000:], FM_test_labels[5000:]
 
 
 
-trial = 5
-
 # PARAMETERS
-SEED = [34]
-# SEED = [5, 15, 24, 34, 97]
-# SEED = [49, 60, 74, 89, 100]
+SEED = [5]
+# SEED = [34, 97]
+# SEED = [74]
 # 11, 24
 
 iterations = 50
@@ -390,12 +406,12 @@ epochs = 1
 grad_steps = iterations * epochs * batches * pop_size
 
 # randomization amount
-input_factor = 15
+input_factor = 1
 
 # # NN model chosen (from NN_models.py)
 # model_num = 4
 
-graph = True
+graph = False
 
 import os
 # seed:
@@ -417,7 +433,6 @@ def set_global_determinism(seed=SEED):
 ## MAIN RUNNING CODE
 if __name__ == "__main__":
 
-	# number of "trials"
 	for i in range(len(SEED)):
 
 		print(""), print("MAJOR ITERATION %s: " % (i+1)), print("")
@@ -455,9 +470,9 @@ if __name__ == "__main__":
 		# writing data to excel file
 		data = [[best_test_model_loss, best_train_model_loss, grad_steps, model_num, CV_selection, randomization, iterations, pop_size, number_of_replaced_individuals, rr, input_factor, time_lapsed, epochs, batches, batch_size, SEED[i]]]
 
-		# with open('/Users/abhi/Documents/research_data/pd_data_model4.csv', 'a', newline = '') as file:
-		# 	writer = csv.writer(file)
-		# 	writer.writerows(data)
+		with open('/Users/abhi/Documents/research_data/pd_data_model4_ablation.csv', 'a', newline = '') as file:
+			writer = csv.writer(file)
+			writer.writerows(data)
 
 		if graph:
 			graph_history(history, grad_steps)

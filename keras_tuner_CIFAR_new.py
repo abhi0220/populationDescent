@@ -76,7 +76,7 @@ def set_global_determinism(seed):
 
 
 
-SEED = [5, 15]
+SEED = [89, 97, 100]
 
 for seed in SEED:  
 
@@ -150,7 +150,7 @@ for seed in SEED:
 
 
 
-	model_num = "6_no_reg"
+	model_num = "6_with_reg"
 
 
 	# writing data to excel file
