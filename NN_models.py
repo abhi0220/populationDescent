@@ -27,7 +27,7 @@ import tensorflow as tf
 NN_Individual = namedtuple("NN_Individual", ["nn", "opt_obj", "LR_constant", "reg_constant"])
 
 # Testing population descent
-def new_pd_NN_individual():
+def new_pd_NN_individual(lr=1e-3):
 
 
 	# model #6, no_reg - better, bigger CIFAR10 model
@@ -91,7 +91,7 @@ def new_pd_NN_individual():
 	print(model.summary())
 
 	# optimizer = tf.keras.optimizers.legacy.Adam() # 1e-3 (for FMNIST, CIFAR)
-	optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=1e-3) # 1e-3 (for FMNIST)
+	optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=lr) # 1e-3 (for FMNIST)
 	# optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=1e-2) # CIFAR (doesn't work well)
 	LR_constant = 10**(np.random.normal(-4, 2))
 	reg_constant = 10**(np.random.normal(0, 2))
