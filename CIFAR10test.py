@@ -203,8 +203,8 @@ def Parameter_class_evaluator(population):
 	for i in range(len(population)):
 		individual_train_loss, individual_test_loss = evaluator(population[i])
 
-		pop_train_loss.append(individual_train_loss)
 		pop_test_loss.append(individual_test_loss)
+		best_train_model_loss = pop_train_loss[pop_test_loss.index(best_test_model_loss)]
 
 	# avg_total_test_loss = np.mean(all_test_loss)
 	best_train_model_loss = np.min(pop_train_loss)
