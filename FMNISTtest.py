@@ -53,7 +53,7 @@ def NN_optimizer_manual_loss(NN_object, batches, batch_size, epochs):
 	optimizer = NN_object.opt_obj
 	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
-	indices = np.random.choice(59999, size = (batch_size*batches, ), replace=False)
+	indices = np.random.choice(9999, size = (batch_size*batches, ), replace=False)
 	vIndices = np.random.choice(4999, size = (batch_size*10, ), replace=False)
 
 	# FM dataset
@@ -94,14 +94,15 @@ def gradient_steps(lossfn, training_set, labels, batch_size, epochs, NN_object):
 					if len(regularization_loss) == 0:
 						reg_loss = 0
 					else:
-						reg_loss = regularization_loss[0]
+						reg_loss = sum(regularization_loss)
 
-					mreg_loss = reg_loss * NN_object.reg_constant
-					total_training_loss = NN_object.LR_constant * (model_loss + mreg_loss) # LR + REG randomization
-
+					# mreg_loss = reg_loss * NN_object.reg_constant
+					total_training_loss = (model_loss+reg_loss) # LR + REG randomization
 				# calculate the gradients using our tape and then update the model weights
 				grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization and regularization loss
-
+				# for i in range(len(NN_object.nn.trainable_variables)):
+				# 	NN_object.nn.trainable_variables[i].assign(NN_object.nn.trainable_variables[i]-1*grads[i])
+				NN_object.opt_obj.lr = NN_object.LR_constant
 				NN_object.opt_obj.apply_gradients(zip(grads, NN_object.nn.trainable_variables))
 
 	tf.print("training loss: %s" % model_loss) ## remove this --> put nothing (put at recombination)
@@ -290,8 +291,8 @@ def individual_to_params(
 	def Parameter_class_optimizer(population: np.array(Individual)) -> np.array(Individual):
 		lFitnesses, vFitnesses = [], []
 		for i in range(len(population)):
-			print(""), print("model #%s" % (i+1)), print("")
 			normalized_training_loss, normalized_validation_loss = individual_optimizer(NN_Individual(*population[i]), batches, batch_size, epochs)
+			print(""), print(f"model #{i+1}, lr = {population[i].LR_constant}, reg={population[i].reg_constant}"), print("")
 			lFitnesses.append(normalized_training_loss)
 			vFitnesses.append(normalized_validation_loss)
 
@@ -356,7 +357,7 @@ FM_train_images = FM_train_images.reshape(len(FM_train_images), FM_input_shape[0
 FM_test_images  = FM_test_images.reshape(len(FM_test_images), FM_input_shape[0], FM_input_shape[1], FM_input_shape[2])
 
 # normalizing data
-FM_train_images, FM_test_images = FM_train_images / 255.0, FM_test_images / 255.0
+FM_train_images, FM_test_images = FM_train_images[0:10000] / 255.0, FM_test_images[0:10000] / 255.0
 
 # splitting data into validation/test set
 FM_validation_images, FM_validation_labels = FM_test_images[0:5000], FM_test_labels[0:5000]
