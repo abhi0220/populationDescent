@@ -128,71 +128,6 @@ def new_pd_NN_individual_FMNIST():
 	# tf.keras.layers.Dense(10, activation='softmax')
 	# ])
 
-
-	# # model #4 with regularization
-	# model_num = "4_with_reg"
-	# FM_input_shape = (28, 28, 1)
-	# model = tf.keras.Sequential([
-	# tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
-
-	# tf.keras.layers.Conv2D(filters=128, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
-	# tf.keras.layers.MaxPooling2D(pool_size=(2,2)),
-	# tf.keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
-	# tf.keras.layers.MaxPooling2D(pool_size=(2,2)),
-	# tf.keras.layers.Conv2D(filters=512, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
-	# # tf.keras.layers.MaxPooling2D(pool_size=(2,2)),
-	# tf.keras.layers.Conv2D(filters=1024, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
-	# # tf.keras.layers.MaxPooling2D(pool_size=(2,2)),
-	# # tf.keras.layers.Conv2D(filters=2048, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
-	# # tf.keras.layers.Conv2D(filters=4096, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
-	# # tf.keras.layers.Conv2D(filters=1024, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
-
-
-	# tf.keras.layers.Flatten(),
-	# # tf.keras.layers.Dense(1024, kernel_regularizer=tf.keras.regularizers.l2(l=0.001)),
-	# tf.keras.layers.Dense(1024),
-
-	# tf.keras.layers.Dense(512),
-	# tf.keras.layers.Dense(256),
-	# tf.keras.layers.Dense(128),
-	# tf.keras.layers.Dense(64),
-
-	# tf.keras.layers.Activation('relu'),
-	# # tf.keras.layers.Dropout(0.5),
-	# tf.keras.layers.Dense(10, activation='softmax')
-	# ])
-
-
-
-	# # model 8, big from online: https://medium.com/@BrendanArtley/mnist-keras-simple-cnn-99-6-731b624aee7f
-	# model_num = "8"
-	# model = tf.keras.Sequential()
-	# model.add(Conv2D(filters=32, kernel_size=(3, 3), activation='relu', strides=1, padding='same', data_format='channels_last', input_shape=(28,28,1)))
-	# # model.add(BatchNormalization())
-	# model.add(Conv2D(filters=32, kernel_size=(3, 3), activation='relu', strides=1, padding='same', data_format='channels_last'))
-	# # model.add(BatchNormalization())
-	# model.add(MaxPooling2D(pool_size=(2, 2), strides=2, padding='valid' ))
-	# # model.add(Dropout(0.25))
-
-	# model.add(Conv2D(filters=64, kernel_size=(3, 3), activation='relu', strides=1, padding='same', data_format='channels_last'))
-	# # model.add(BatchNormalization())
-	# model.add(Conv2D(filters=64, kernel_size=(3, 3), strides=1, padding='same', activation='relu', data_format='channels_last'))
-	# # model.add(BatchNormalization())
-	# model.add(MaxPooling2D(pool_size=(2, 2), padding='valid', strides=2))
-	# # model.add(Dropout(0.25))
-
-	# model.add(Flatten())
-	# model.add(Dense(1024, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.001)))
-	# # model.add(BatchNormalization())
-	# # model.add(Dropout(0.25))
-	# model.add(Dense(512, activation='relu'))
-	# # model.add(Dense(256, activation='relu'))
-	# # model.add(Dense(128, activation='relu'))
-	# # model.add(Dense(64, activation='relu'))
-
-	# # model.add(BatchNormalization())
-	# # model.add(Dropout(0.5))
-	# model.add(Dense(10, activation='softmax'))
 	
 
 
@@ -201,8 +136,9 @@ def new_pd_NN_individual_FMNIST():
 
 	# optimizer = tf.keras.optimizers.legacy.Adam() # 1e-3 (for FMNIST, CIFAR)
 	# optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=1e-3) # 1e-3 (for FMNIST, CIFAR)
-	optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=1) # 1e-3 (for FMNIST, CIFAR)
-	LR_constant = 10**(np.random.normal(-4, 2))
+	optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=1e-3) # 1e-3 (for FMNIST, CIFAR)
+	# LR_constant = 10**(np.random.normal(-4, 2))
+	LR_constant = 1
 	reg_constant = 10**(np.random.normal(0, 2))
 
 	# creating NN object with initialized parameters

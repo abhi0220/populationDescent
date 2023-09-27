@@ -53,7 +53,7 @@ def NN_optimizer_manual_loss(NN_object, batches, batch_size, epochs):
 	optimizer = NN_object.opt_obj
 	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
-	indices = np.random.choice(59999, size = (batch_size*batches, ), replace=False)
+	indices = np.random.choice(9999, size = (batch_size*batches, ), replace=False)
 	vIndices = np.random.choice(4999, size = (batch_size*10, ), replace=False)
 
 	# FM dataset
@@ -89,21 +89,20 @@ def gradient_steps(lossfn, training_set, labels, batch_size, epochs, NN_object):
 
 					# make a prediction using the model and then calculate the loss
 					model_loss = lossfn(y_batch, NN_object.nn(x_batch))
+					# model_loss = model_loss * 0.5
 				
 					# use regularization constant
 					regularization_loss = NN_object.nn.losses
-					if len(regularization_loss) == 0:
-						reg_loss = 0
-					else:
-						reg_loss = regularization_loss[0]
+					reg_loss = sum(regularization_loss)
 
 					mreg_loss = reg_loss * NN_object.reg_constant
 					# total_training_loss = (model_loss + mreg_loss) # LR + REG randomization
 					total_training_loss = NN_object.LR_constant * (model_loss + mreg_loss) # LR + REG randomization
+					# print(total_training_loss)
 
 				# calculate the gradients using our tape and then update the model weights
 				grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization and regularization loss
-				# x = [abs(grad) for grad in grads]
+				# grads = [abs(grad) * NN_object.LR_constant for grad in grads]
 				# tf.print(tf.reduce_mean([tf.reduce_mean(tf.abs(g)) for g in grads if g is not None])) # print average gradient magnitude
 
 				NN_object.opt_obj.apply_gradients(zip(grads, NN_object.nn.trainable_variables))
@@ -376,6 +375,8 @@ FM_test_images  = FM_test_images.reshape(len(FM_test_images), FM_input_shape[0],
 # normalizing data
 FM_train_images, FM_test_images = FM_train_images / 255.0, FM_test_images / 255.0
 
+FM_train_images, FM_train_labels = FM_train_images[:10000], FM_train_labels[:10000]
+
 # splitting data into validation/test set
 FM_validation_images, FM_validation_labels = FM_test_images[0:5000], FM_test_labels[0:5000]
 FM_test_images, FM_test_labels = FM_test_images[5000:], FM_test_labels[5000:]
@@ -392,9 +393,9 @@ SEED = [5]
 
 iterations = 50
 
-pop_size = 5
+pop_size = 1
 number_of_replaced_individuals = 2
-randomization = True
+randomization = False
 CV_selection = True
 rr = 1 # leash for exploration (how many iterations of gradient descent to run before randomization)
 
@@ -406,10 +407,10 @@ epochs = 1
 grad_steps = iterations * epochs * batches * pop_size
 
 # randomization amount
-input_factor = 1
+input_factor = 15
 
 # # NN model chosen (from NN_models.py)
-# model_num = 4
+model_num = 4
 
 graph = False
 
