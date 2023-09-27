@@ -1,9 +1,6 @@
 import keras_tuner
 import tensorflow as tf
 from tensorflow import keras
-
-from keras.callbacks import TensorBoard
-
 import numpy as np
 import random
 
@@ -14,28 +11,18 @@ import csv
 # cd populationDescent/
 # python3 -m venv ~/venv-metal
 # source ~/venv-metal/bin/activate
-# python3 -m keras_tuner_FMNIST_without_reg_test
+# python3 -m keras_tuner_CIFAR10_without_regularization_test
 
 # grad_steps = 25 trials * 2 executions each trial * 782 batches per execution + (5 * 782) for final training = 43000 steps
 
 
 
-# Fashion-MNIST dataset
-fashion_mnist = tf.keras.datasets.fashion_mnist
-(train_images, train_labels), (test_images, test_labels) = fashion_mnist.load_data()
-
-sample_shape = train_images[0].shape
-img_width, img_height = sample_shape[0], sample_shape[1]
-input_shape = (img_width, img_height, 1)
-
-# Reshape data
-train_images = train_images.reshape(len(train_images), input_shape[0], input_shape[1], input_shape[2])
-test_images  = test_images.reshape(len(test_images), input_shape[0], input_shape[1], input_shape[2])
+# CIFAR10 dataset
+(train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.cifar10.load_data()
 
 # normalizing data
 train_images, test_images = train_images / 255.0, test_images / 255.0
 
-# splitting data into validation/test set
 validation_images, validation_labels = test_images[0:5000], test_labels[0:5000]
 test_images, test_labels = test_images[5000:], test_labels[5000:]
 
@@ -43,20 +30,21 @@ test_images, test_labels = test_images[5000:], test_labels[5000:]
 
 
 def build_model(hp):
-
 	model = keras.Sequential()
-	model.add(tf.keras.layers.Conv2D(64,  kernel_size = 3, strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape = (28, 28, 1)))
-	model.add(tf.keras.layers.Conv2D(128,  kernel_size = 3, strides=(2,2), dilation_rate=(1,1), activation='relu'))
-	model.add(tf.keras.layers.Conv2D(256,  kernel_size = 3, dilation_rate=(1,1), activation='relu'))
+	model.add(tf.keras.layers.Conv2D(32,  kernel_size = 3, activation='relu', input_shape = (32, 32, 3)))
+	model.add(tf.keras.layers.Conv2D(64,  kernel_size = 3, activation='relu'))
+	model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+	model.add(tf.keras.layers.Conv2D(128,  kernel_size = 3, activation='relu'))
+	model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+	model.add(tf.keras.layers.Conv2D(64,  kernel_size = 3, activation='relu'))
+	model.add(tf.keras.layers.MaxPooling2D((4, 4)))
 
-	
 	model.add(tf.keras.layers.Flatten())
 
-	# no regularization
+	# without regularization
 	# hp_reg = hp.Float("reg_term", min_value=1e-5, max_value=1e-1)
 
-	model.add(tf.keras.layers.Dense(1024, activation = "relu"))
-	model.add(tf.keras.layers.Dropout(0.5))
+	model.add(tf.keras.layers.Dense(256, activation = "relu"))
 	model.add(tf.keras.layers.Dense(10, activation = "softmax"))
 
 	hp_learning_rate = hp.Float("lr", min_value=1e-4, max_value=1e-2, sampling="log")
@@ -89,12 +77,11 @@ def set_global_determinism(seed):
 
 
 
-SEED = [5, 15, 24, 34, 49, 60, 74, 89, 97, 100]
-# s = [5, 15, 24, 34, 49, 60, 74, 89, 97, 100]
-
-
+SEED = [97, 100]
 
 for seed in SEED:  
+
+	# s = [5, 15, 24, 34, 49, 60, 74, 89, 97, 100]
 
 	set_global_determinism(seed=seed)
 	print(seed), print("") 
@@ -103,8 +90,9 @@ for seed in SEED:
 	start_time = time.time()  
 
 
-	max_trials = 2
-	model_num = "4 without reg"
+	max_trials = 25
+	model_num = "6 without reg"
+
 
 	# define tuner
 	print("random search")
@@ -114,12 +102,12 @@ for seed in SEED:
 	    max_trials=max_trials,
 	    executions_per_trial=2,
 	    overwrite=True,
-	    project_name="FMNIST: %s" % SEED
+	    project_name="CIFAR: %s" % SEED
 	)
 
-	with tf.device('/device:GPU:0'):
-		# search
-		tuner.search(train_images, train_labels, validation_data=(validation_images, validation_labels), callbacks=[tensorboard], batch_size=64)
+
+	# search
+	tuner.search(train_images, train_labels, validation_data=(validation_images, validation_labels), batch_size=64)
 
 	# retrieve and train best model
 	best_hps = tuner.get_best_hyperparameters(5)
@@ -134,12 +122,7 @@ for seed in SEED:
 	print("")
 	print("TRAINING")
 	train_epochs = 20
-	hist = model.fit(train_images, train_labels, batch_size= 64, validation_data=(validation_images, validation_labels), epochs=train_epochs, callbacks=[callback])
-
-	# getting history
-	print("history"), print(hist.history["val_loss"])
-	grad_steps = [i * 936 for i in hist.history['val_loss']]
-	print(""), print("grad_steps"), print(grad_steps)
+	model.fit(train_images, train_labels, batch_size= 64, validation_data=(validation_images, validation_labels), epochs=train_epochs, callbacks=[callback])
 
 
 	time_lapsed = time.time() - start_time
@@ -168,15 +151,82 @@ for seed in SEED:
 
 
 
-	model_num = "4_with_reg"
+	def graph_history(history):
+		integers = [i for i in range(1, (len(history))+1)]
+
+		ema = []
+		avg = history[0]
+
+		ema.append(avg)
+
+		for loss in history:
+			avg = (avg * 0.9) + (0.1 * loss)
+			ema.append(avg)
+
+
+		x = [j * rr * (batches * pop_size) for j in integers]
+		y = history
+
+		# plot line
+		plt.plot(x, ema[:len(history)])
+		# plot title/captions
+		plt.title("Keras Tuner CIFAR")
+		plt.xlabel("Gradient Steps")
+		plt.ylabel("Validation Loss")
+		plt.tight_layout()
+
+
+		print("ema:"), print(ema), print("")
+		print("x:"), print(x), print("")
+		print("history:"), print(history), print("")
+
+
+		
+		# plt.savefig("TEST_DATA/PD_trial_%s.png" % trial)
+		def save_image(filename):
+		    p = PdfPages(filename)
+		    fig = plt.figure(1)
+		    fig.savefig(p, format='pdf') 
+		    p.close()
+
+		filename = "KerasTuner_CIFAR_progress_with_reg_model4_line.pdf"
+		save_image(filename)
+
+		# plot points too
+		plt.scatter(x, history, s=20)
+
+		def save_image(filename):
+		    p = PdfPages(filename)
+		    fig = plt.figure(1)
+		    fig.savefig(p, format='pdf') 
+		    p.close()
+
+		filename = "KerasTuner_CIFAR_progress_with_reg_model4_with_points.pdf"
+		save_image(filename)
+
+
+		plt.show(block=True), plt.close()
+		plt.close('all')
+
+
+
+
+	model_num = "6_without_reg"
+
+
 
 
 	# writing data to excel file
 	data = [[test_loss, train_loss, model_num, max_trials, time_lapsed, seed]]
 
-	with open('/Users/abhi/Documents/research_data/keras_tuner_random_search_FMNIST.csv', 'a', newline = '') as file:
+	with open('/Users/abhi/Documents/research_data/keras_tuner_random_search_CIFAR10.csv', 'a', newline = '') as file:
 	    writer = csv.writer(file)
 	    writer.writerows(data)
+
+
+
+
+
 
 
 

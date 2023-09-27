@@ -53,7 +53,7 @@ def populationDescent(Parameters, number_of_replaced_individuals, iterations):
 
 		# observing optimization progress
 		# if i%(1)==0 and i!=(iterations-1):
-		if i%(10)==0:
+		if i%(1)==0:
 			Parameters.observer(Parameters.population, Parameters.history)
 
 

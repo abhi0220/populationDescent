@@ -207,8 +207,10 @@ for seed in SEED:
 	hist = model.fit(train_images, train_labels, batch_size=64, validation_data=(validation_images, validation_labels), epochs=train_epochs, callbacks=[callback])
 
 	# getting history
-	print(hist.history["val_loss"])
-	graph_history(hist.history["val_loss"])
+	print("history"), print(hist.history["val_loss"])
+	grad_steps = [i * 936 for i in hist.history['val_loss']]
+	print(""), print("grad_steps"), print(grad_steps)
+	# graph_history(hist.history["val_loss"])
 
 	time_lapsed = time.time() - start_time
 

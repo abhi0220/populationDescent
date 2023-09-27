@@ -106,24 +106,67 @@ for h in range(len(SEED)):
 
 		return test_loss
 
-	def graph_history(history, trial, model_string, training_loss_data_string, test_loss_data_string, best_lr_data, best_reg_amount_string):
+	def graph_history(history, grad_steps):
 		integers = [i for i in range(1, (len(history))+1)]
-		x = [j * rr for j in integers]
+
+		ema = []
+		avg = history[0]
+
+		ema.append(avg)
+
+		for loss in history:
+			avg = (avg * 0.9) + (0.1 * loss)
+			ema.append(avg)
+
+
+		x = [j * (batches * pop_size) for j in integers]
 		y = history
 
+		print("history:"), print(history), print("")
+		print("ema"), print(ema), print("")
+		print("x"), print(x), print("")
+
+		print(history)
+
+		
+		# plot line
+		plt.plot(x, ema[:len(history)])
+		
+
+
+		plt.title("Grid Search FMNIST")
+		plt.xlabel("Gradient Steps")
+		plt.ylabel("Validation Loss")
+
+
+		plt.tight_layout()
+		# plt.savefig("TEST_DATA/PD_trial_%s.png" % trial)
+		def save_image(filename):
+		    p = PdfPages(filename)
+		    fig = plt.figure(1)
+		    fig.savefig(p, format='pdf') 
+		    p.close()
+
+		filename = "gs_FMNIST_progress_with_reg_model4_line.pdf"
+		save_image(filename)
+
+		# plot points too
 		plt.scatter(x, history, s=20)
 
-		# plt.tight_layout()
-		# plt.title("HyperParameter Search trial #%s" % trial)
-		# plt.ylabel('unnormalized loss of best model')
-		# plt.xlabel('iterations')
+		def save_image(filename):
+		    p = PdfPages(filename)
+		    fig = plt.figure(1)
+		    fig.savefig(p, format='pdf') 
+		    p.close()
 
-		# plt.xlabel("%s\n\n%s\n\n%s\n\n%s\n\n%s" % (model_string, training_loss_data_string, test_loss_data_string, best_lr_data, best_reg_amount_string))
+		filename = "gs_FMNIST_progress_with_reg_model4_with_points.pdf"
+		save_image(filename)
 
-		# for i,j in zip(x,y):
-		# 	plt.annotate(str(j),xy=(i,j))
-		# plt.text(x[(len(x))-1], y[(len(y))-1], y[(len(y))-1])
-		# plt.axhline(y = y[(len(y))-1])
+
+
+		plt.show(block=True), plt.close()
+		plt.close('all')
+
 
 		plt.tight_layout()
 		# plt.savefig("TEST_DATA/HP_trial_%s.png" % trial)
@@ -148,14 +191,18 @@ for h in range(len(SEED)):
 
 	gradient_steps = iterations * epochs * batches * (len(population))
 
-
-	graph = False
+	pop_size = 5
+	graph = True
 
 
 	import time
 	start_time = time.time()
 
 	with tf.device('/device:GPU:0'):
+		integers = [i for i in range(1, 51)]
+		x = [j * (batches * pop_size) for j in integers]
+		print(x)
+
 		# TRAINING
 		for i in tqdm(range(iterations)):
 
@@ -271,7 +318,7 @@ for h in range(len(SEED)):
 
 	# graphing data
 	if graph:
-		graph_history(observer_history, trial, model_string, training_loss_data_string, test_loss_data_string, best_lr_data, best_reg_amount_string)
+		graph_history(observer_history, gradient_steps)
 
 
 
