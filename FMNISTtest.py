@@ -89,20 +89,17 @@ def gradient_steps(lossfn, training_set, labels, batch_size, epochs, NN_object):
 
 					# make a prediction using the model and then calculate the loss
 					model_loss = lossfn(y_batch, NN_object.nn(x_batch))
-					# model_loss = model_loss * 0.5
 				
 					# use regularization constant
 					regularization_loss = NN_object.nn.losses
+
 					reg_loss = sum(regularization_loss)
 
-					mreg_loss = reg_loss * NN_object.reg_constant
-					# total_training_loss = (model_loss + mreg_loss) # LR + REG randomization
-					total_training_loss = NN_object.LR_constant * (model_loss + mreg_loss) # LR + REG randomization
-					# print(total_training_loss)
-
+					# mreg_loss = reg_loss * NN_object.reg_constant
+					total_training_loss = NN_object.LR_constant * (model_loss+reg_loss) # LR + REG randomization
 				# calculate the gradients using our tape and then update the model weights
 				grads = tape.gradient(total_training_loss, NN_object.nn.trainable_variables) ## with LR randomization and regularization loss
-				# grads = [abs(grad) * NN_object.LR_constant for grad in grads]
+				# x = [abs(grad) for grad in grads]
 				# tf.print(tf.reduce_mean([tf.reduce_mean(tf.abs(g)) for g in grads if g is not None])) # print average gradient magnitude
 
 				NN_object.opt_obj.apply_gradients(zip(grads, NN_object.nn.trainable_variables))
@@ -307,8 +304,8 @@ def individual_to_params(
 	def Parameter_class_optimizer(population: np.array(Individual)) -> np.array(Individual):
 		lFitnesses, vFitnesses = [], []
 		for i in range(len(population)):
-			print(""), print("model #%s" % (i+1)), print("")
 			normalized_training_loss, normalized_validation_loss = individual_optimizer(NN_Individual(*population[i]), batches, batch_size, epochs)
+			print(""), print(f"model #{i+1}, lr = {population[i].LR_constant}, reg={population[i].reg_constant}"), print("")
 			lFitnesses.append(normalized_training_loss)
 			vFitnesses.append(normalized_validation_loss)
 
@@ -373,9 +370,7 @@ FM_train_images = FM_train_images.reshape(len(FM_train_images), FM_input_shape[0
 FM_test_images  = FM_test_images.reshape(len(FM_test_images), FM_input_shape[0], FM_input_shape[1], FM_input_shape[2])
 
 # normalizing data
-FM_train_images, FM_test_images = FM_train_images / 255.0, FM_test_images / 255.0
-
-FM_train_images, FM_train_labels = FM_train_images[:10000], FM_train_labels[:10000]
+FM_train_images, FM_test_images = FM_train_images[0:10000] / 255.0, FM_test_images[0:10000] / 255.0
 
 # splitting data into validation/test set
 FM_validation_images, FM_validation_labels = FM_test_images[0:5000], FM_test_labels[0:5000]
@@ -393,9 +388,9 @@ SEED = [5]
 
 iterations = 50
 
-pop_size = 1
+pop_size = 5
 number_of_replaced_individuals = 2
-randomization = False
+randomization = True
 CV_selection = True
 rr = 1 # leash for exploration (how many iterations of gradient descent to run before randomization)
 
@@ -410,7 +405,7 @@ grad_steps = iterations * epochs * batches * pop_size
 input_factor = 15
 
 # # NN model chosen (from NN_models.py)
-model_num = 4
+# model_num = 4
 
 graph = False
 
@@ -477,6 +472,5 @@ if __name__ == "__main__":
 
 		if graph:
 			graph_history(history, grad_steps)
-
 
 

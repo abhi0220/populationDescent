@@ -108,23 +108,23 @@ def new_pd_NN_individual_FMNIST():
 	tf.keras.layers.Flatten(),
 	tf.keras.layers.Dense(1024),
 	tf.keras.layers.Activation('relu'),
-	tf.keras.layers.Dropout(0.5),
+	# tf.keras.layers.Dropout(0.5),
 	tf.keras.layers.Dense(10, activation='softmax')
 	])
 
-	# # model #4 with regularization
+	# model #4 with regularization
 	# model_num = "4_with_reg"
 	# FM_input_shape = (28, 28, 1)
 	# model = tf.keras.Sequential([
-	# tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
-	# tf.keras.layers.Conv2D(filters=128, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu'),
-	# tf.keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
+	# tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape, kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
+	# tf.keras.layers.Conv2D(filters=128, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
+	# tf.keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu', kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
 
 
 	# tf.keras.layers.Flatten(),
 	# tf.keras.layers.Dense(1024, kernel_regularizer=tf.keras.regularizers.l2(l=.001)),
 	# tf.keras.layers.Activation('relu'),
-	# tf.keras.layers.Dropout(0.5),
+	# # tf.keras.layers.Dropout(0.5),
 	# tf.keras.layers.Dense(10, activation='softmax')
 	# ])
 
@@ -136,9 +136,15 @@ def new_pd_NN_individual_FMNIST():
 
 	# optimizer = tf.keras.optimizers.legacy.Adam() # 1e-3 (for FMNIST, CIFAR)
 	# optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=1e-3) # 1e-3 (for FMNIST, CIFAR)
+<<<<<<< HEAD
 	optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=1e-3) # 1e-3 (for FMNIST, CIFAR)
 	# LR_constant = 10**(np.random.normal(-4, 2))
 	LR_constant = 1
+=======
+	LR_constant = 10**(np.random.normal(-4, 2))
+	optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=LR_constant) # 1e-3 (for FMNIST, CIFAR)
+	# LR_constant = 10**(np.random.normal(-4, 2))
+>>>>>>> 5cd50d85d6b49dacf208cc0cdcbd7bcaa83590b8
 	reg_constant = 10**(np.random.normal(0, 2))
 
 	# creating NN object with initialized parameters
@@ -195,24 +201,7 @@ def new_hps_NN_individual_FMNIST():
 			# model_num = 3
 
 			# model #4 without regularization (for ESGD model comparison)
-			model_num = "4_no_reg; 5 models"
-			FM_input_shape = (28, 28, 1)
-			model = tf.keras.Sequential([
-			tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
-			tf.keras.layers.Conv2D(filters=128, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu'),
-			tf.keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
-
-
-			tf.keras.layers.Flatten(),
-			tf.keras.layers.Dense(1024),
-			tf.keras.layers.Activation('relu'),
-			tf.keras.layers.Dropout(0.5),
-			tf.keras.layers.Dense(10, activation='softmax')
-			])
-
-
-			# # model #4 with regularization (for ESGD model comparison)
-			# model_num = "4_with_reg; 25 models"
+			# model_num = "4_no_reg; 5 models"
 			# FM_input_shape = (28, 28, 1)
 			# model = tf.keras.Sequential([
 			# tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
@@ -221,11 +210,28 @@ def new_hps_NN_individual_FMNIST():
 
 
 			# tf.keras.layers.Flatten(),
-			# tf.keras.layers.Dense(1024, kernel_regularizer=tf.keras.regularizers.l2(l=regularization_amount[r])),
+			# tf.keras.layers.Dense(1024),
 			# tf.keras.layers.Activation('relu'),
 			# tf.keras.layers.Dropout(0.5),
 			# tf.keras.layers.Dense(10, activation='softmax')
 			# ])
+
+
+			# # model #4 with regularization (for ESGD model comparison)
+			model_num = "4_with_reg; 25 models"
+			FM_input_shape = (28, 28, 1)
+			model = tf.keras.Sequential([
+			tf.keras.layers.Conv2D(filters=64, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu', input_shape=FM_input_shape),
+			tf.keras.layers.Conv2D(filters=128, kernel_size=(3,3), strides=(2,2), dilation_rate=(1,1), activation='relu'),
+			tf.keras.layers.Conv2D(filters=256, kernel_size=(3,3), dilation_rate=(1,1), activation='relu'),
+
+
+			tf.keras.layers.Flatten(),
+			tf.keras.layers.Dense(1024, kernel_regularizer=tf.keras.regularizers.l2(l=regularization_amount[r])),
+			tf.keras.layers.Activation('relu'),
+			# tf.keras.layers.Dropout(0.5),
+			tf.keras.layers.Dense(10, activation='softmax')
+			])
 
 
 			# # model #4 with regularization (for ESGD model comparison) without regularization
