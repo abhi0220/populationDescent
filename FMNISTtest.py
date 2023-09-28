@@ -61,7 +61,7 @@ def NN_optimizer_manual_loss(NN_object, batches, batch_size, epochs):
 	random_batch_FM_validation_images, random_batch_FM_validation_labels = FM_validation_images[vIndices], FM_validation_labels[vIndices]
 
 	model_loss = gradient_steps(lossfn, random_batch_FM_train_images, random_batch_FM_train_labels, batch_size, epochs, NN_object)
-	print(NN_object.LR_constant)
+	# print(NN_object.LR_constant)
 
 	validation_loss = lossfn(random_batch_FM_validation_labels, NN_object.nn(random_batch_FM_validation_images))
 	tf.print("validation loss: %s" % validation_loss), print("")
@@ -208,8 +208,8 @@ def graph_history(history, grad_steps):
 
 
 
-	plt.show(block=True), plt.close()
-	plt.close('all')
+	# plt.show(block=True), plt.close()
+	# plt.close('all')
 
 
 # returns training and test loss (UNNORMALIZED) on data chosen with random seed
@@ -381,12 +381,12 @@ FM_test_images, FM_test_labels = FM_test_images[5000:], FM_test_labels[5000:]
 
 
 # PARAMETERS
-SEED = [5]
+SEED = [101, 150, 200]
 # SEED = [34, 97]
 # SEED = [74]
 # 11, 24
 
-iterations = 50
+iterations = 115
 
 pop_size = 5
 number_of_replaced_individuals = 2
@@ -407,7 +407,7 @@ input_factor = 15
 # # NN model chosen (from NN_models.py)
 # model_num = 4
 
-graph = False
+graph = True
 
 import os
 # seed:
