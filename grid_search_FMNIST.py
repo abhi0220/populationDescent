@@ -36,13 +36,14 @@ import tensorflow as tf
 
 import csv
 
+from matplotlib.backends.backend_pdf import PdfPages
 
 from NN_models_FMNIST import new_hps_NN_individual_FMNIST
 
 # setting seed
 # SEED = [5, 15, 24, 34, 97]
 # SEED = [49, 60, 74, 89, 100]
-SEED = [89]
+SEED = [200]
 
 import os
 def set_seeds(seed=SEED):
@@ -148,7 +149,7 @@ for h in range(len(SEED)):
 		    p.close()
 
 		filename = "gs_FMNIST_progress_with_reg_model4_line.pdf"
-		save_image(filename)
+		# save_image(filename)
 
 		# plot points too
 		plt.scatter(x, history, s=20)
@@ -160,7 +161,7 @@ for h in range(len(SEED)):
 		    p.close()
 
 		filename = "gs_FMNIST_progress_with_reg_model4_with_points.pdf"
-		save_image(filename)
+		# save_image(filename)
 
 
 
@@ -183,7 +184,7 @@ for h in range(len(SEED)):
 
 
 	# PARAMETERS
-	iterations = 50
+	iterations = 100
 
 	batch_size = 64
 	batches = 128
