@@ -53,7 +53,7 @@ def NN_optimizer_manual_loss(NN_object, batches, batch_size, epochs):
 	optimizer = NN_object.opt_obj
 	lossfn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
 
-	indices = np.random.choice(9999, size = (batch_size*batches, ), replace=False)
+	indices = np.random.choice(59999, size = (batch_size*batches, ), replace=False)
 	vIndices = np.random.choice(4999, size = (batch_size*10, ), replace=False)
 
 	# FM dataset
@@ -370,7 +370,8 @@ FM_train_images = FM_train_images.reshape(len(FM_train_images), FM_input_shape[0
 FM_test_images  = FM_test_images.reshape(len(FM_test_images), FM_input_shape[0], FM_input_shape[1], FM_input_shape[2])
 
 # normalizing data
-FM_train_images, FM_test_images = FM_train_images[0:10000] / 255.0, FM_test_images[0:10000] / 255.0
+FM_train_images, FM_test_images = FM_train_images / 255.0, FM_test_images / 255.0
+# FM_train_images, FM_test_images = FM_train_images[0:10000] / 255.0, FM_test_images[0:10000] / 255.0
 
 # splitting data into validation/test set
 FM_validation_images, FM_validation_labels = FM_test_images[0:5000], FM_test_labels[0:5000]
@@ -381,7 +382,7 @@ FM_test_images, FM_test_labels = FM_test_images[5000:], FM_test_labels[5000:]
 
 
 # PARAMETERS
-SEED = [101, 150, 200]
+SEED = [200]
 # SEED = [34, 97]
 # SEED = [74]
 # 11, 24

@@ -89,8 +89,8 @@ def set_global_determinism(seed):
 
 
 
-SEED = [5, 15, 24, 34, 49, 60, 74, 89, 97, 100]
-# s = [5, 15, 24, 34, 49, 60, 74, 89, 97, 100]
+# SEED = [5, 15, 24, 34, 49, 60, 74, 89, 97, 100]
+SEED = [101, 150, 200]
 
 
 
@@ -103,7 +103,7 @@ for seed in SEED:
 	start_time = time.time()  
 
 
-	max_trials = 2
+	max_trials = 25
 	model_num = "4 without reg"
 
 	# define tuner
@@ -119,7 +119,7 @@ for seed in SEED:
 
 	with tf.device('/device:GPU:0'):
 		# search
-		tuner.search(train_images, train_labels, validation_data=(validation_images, validation_labels), callbacks=[tensorboard], batch_size=64)
+		tuner.search(train_images, train_labels, validation_data=(validation_images, validation_labels), batch_size=64)
 
 	# retrieve and train best model
 	best_hps = tuner.get_best_hyperparameters(5)
