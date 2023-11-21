@@ -34,8 +34,6 @@ def populationDescent(Parameters, number_of_replaced_individuals, iterations):
 				chosen_indices = np.array((random.choices(np.arange(Parameters.population.shape[0]), weights = lFitnesses, k = number_of_replaced_individuals)))
 				chosen_population = Parameters.population[chosen_indices]
 				randomizer_strength = 1 - (lFitnesses[chosen_indices])
-
-
 			if Parameters.CV_selection==True:
 				#sorting losses (based on validation)
 				sorted_ind = np.argsort(vFitnesses)
