@@ -88,7 +88,7 @@ for dataset in ["FMNIST", "CIFAR-10", "CIFAR-100"]:
     bar_reg_vs_noreg(dataset, "Gradient Steps", lambda x: (x[2], None))
 
 # legend
-fig_legend = plt.figure(figsize=(2, 1))
-fig_legend.legend(handles=legends[0:4], loc='center', ncol=1)
+fig_legend = plt.figure(figsize=(6.8, 0.35))
+fig_legend.legend(handles=legends[0:4], loc='center', ncol=4)
 fig_legend.tight_layout()
 fig_legend.savefig("plots/legend.pdf")
