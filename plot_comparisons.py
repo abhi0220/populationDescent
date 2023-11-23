@@ -42,36 +42,6 @@ data_dict = {
     },
 }
 
-markers = {
-    "Basic Grid Search": "o",
-    "KT RandomSearch": "x",
-    "ESGD": "s",
-    "Population Descent": "D",
-}
-
-
-# perform a scatter plot for each dataset
-def scatter(dataset, color):
-    plt.figure(figsize=(4, 4))
-    for method in data_dict[dataset]:
-        plt.scatter(
-            data_dict[dataset][method][2],
-            data_dict[dataset][method][0][0],
-            c=color,
-            label=method,
-            marker=markers[method],
-        )
-
-def scatter_reg_vs_noreg(dataset):
-    scatter(dataset + " Without Regularization", "red")
-    scatter(dataset + " With Regularization", "blue")
-    plt.title(dataset)
-    plt.xlabel("Number of Evaluations")
-    plt.ylabel("Test Accuracy")
-    plt.legend()
-    # plt.savefig("plots/" + dataset + ".png")
-    # plt.clf()
-
 colors = {
     "Basic Grid Search": plt.cm.tab10(0),
     "KT RandomSearch": plt.cm.tab10(1),
