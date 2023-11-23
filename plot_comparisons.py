@@ -37,10 +37,11 @@ data_dict = {
     "CIFAR-100 With Regularization":
     {
         "Basic Grid Search": [(2.598, 0.061), (2.224, 0.079), 16000],
-        "KT RandomSearch": [(1.195, 0.209), (1.030, 0.249), 39000],
+        "KT RandomSearch": [(4.162, 0.514), (4.094 , 0.594), 39000],
         "Population Descent": [(2.584, 0.109), (2.236, 0.193), 32000],
     },
 }
+
 
 colors = {
     "Basic Grid Search": plt.cm.tab10(0),
