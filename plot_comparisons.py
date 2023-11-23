@@ -56,6 +56,8 @@ hatches = {
     "Population Descent": "o",
 }
 
+legends = []
+
 def bar_reg_vs_noreg(dataset, title, indexer):
     '''
     Show bars for each method in a dataset with 4 categories (no reg test, reg test, no reg steps, reg steps)
@@ -69,7 +71,7 @@ def bar_reg_vs_noreg(dataset, title, indexer):
             bar_width = 0.2
             yerr = None if len(indexed) == 1 else indexed[1]
             # give the bars some patterns
-            ax.bar(i + j * bar_width, y, bar_width, yerr=yerr, color=colors[method], label=method, hatch = hatches[method])
+            legends.append(ax.bar(i + j * bar_width, y, bar_width, yerr=yerr, color=colors[method], label=method, hatch = hatches[method]))
             
     sub_bar(0, "Unregularized", dataset + " Without Regularization")
     sub_bar(1, "Regularized", dataset + " With Regularization")
@@ -84,3 +86,9 @@ def bar_reg_vs_noreg(dataset, title, indexer):
 for dataset in ["FMNIST", "CIFAR-10", "CIFAR-100"]:
     bar_reg_vs_noreg(dataset, "Test Loss", lambda x: (x[0][0], x[0][1]))
     bar_reg_vs_noreg(dataset, "Gradient Steps", lambda x: (x[2], None))
+
+# legend
+fig_legend = plt.figure(figsize=(2, 1))
+fig_legend.legend(handles=legends[0:4], loc='center', ncol=1)
+fig_legend.tight_layout()
+fig_legend.savefig("plots/legend.pdf")
