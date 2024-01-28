@@ -67,7 +67,7 @@ hatches = {
     "With Schedules": "\\",
     "Sklearn Hyperopt": ".",
     "Basic Grid Search": "",
-    "KT RandomSearch": "x",
+    "KT RandomSearch": "*",
     "ESGD": "/",
     "Population Descent": "o",
 }
@@ -78,7 +78,12 @@ def bar_reg_vs_noreg(dataset, title, indexer):
     '''
     Show bars for each method in a dataset with 4 categories (no reg test, reg test, no reg steps, reg steps)
     '''
-    fig, ax = plt.subplots(figsize=(3, 3), tight_layout=True)
+    # fig, ax = plt.subplots(figsize=(3, 3), tight_layout=True)
+    fig, ax = plt.subplots(figsize=(3, 3))
+    # if title == "Test Loss":
+    #     print("adding a margin on the left")
+    fig.subplots_adjust(top=0.905, bottom=0.089, left=0.24, right=0.976, hspace=0.2, wspace=0.2)
+
     # x_labels = ["No Reg Test", "Reg Test", "No Reg Steps", "Reg Steps"]
     def sub_bar(i, x_label, test):
         for j, method in enumerate(data_dict[test]):
@@ -91,12 +96,12 @@ def bar_reg_vs_noreg(dataset, title, indexer):
             
     sub_bar(0, "Unregularized", dataset + " Without Regularization")
     sub_bar(1, "Regularized", dataset + " With Regularization")
-    # legend
-    # ax.legend(data_dict[dataset + " Without Regularization"].keys())
     
-    plt.title(title)
-    plt.xticks( [0.3, 1.3], ["Unregularized", "Regularized"])
-    plt.savefig("plots/" + dataset + "_" + title + ".pdf")
+    fig.suptitle(title, x = 0.6)
+    ax.set_xticks([0.3, 1.3], ["Unregularized", "Regularized"])
+    # plt.show()
+    fig.savefig("plots/" + dataset + "_" + title + ".pdf")
+
 
 # scatter_reg_vs_noreg("FMNIST")
 for dataset in ["FMNIST", "CIFAR-10", "CIFAR-100"]:
